@@ -98,6 +98,20 @@ export {
   buildPeekCommand,
 } from './core/inject';
 
+// Mention (@ routing)
+export {
+  parseMentions,
+} from './core/mention';
+
+// Hooks (auto-registration)
+export {
+  installHooks,
+  uninstallHooks,
+  buildInstallCommands,
+  buildUninstallCommands,
+  HOOK_NAMES,
+} from './core/hooks';
+
 export type {
   InjectOptions,
   PeekOptions,
