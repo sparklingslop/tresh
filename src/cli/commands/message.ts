@@ -28,6 +28,7 @@ import { findSessionForIdentity, formatSignalNotification, buildNotifyCommand } 
 import { execFileSync } from 'node:child_process';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
+import { formatOutbound } from '../../core/display';
 
 registerCommand('message', async (args, flags) => {
   if (args.length < 2) {
@@ -101,8 +102,13 @@ registerCommand('message', async (args, flags) => {
     } catch { /* best-effort */ }
   }
 
-  // Output
+  // Display outbound message on sender side
   const status = injected ? 'delivered + injected' : 'delivered (offline)';
-  process.stdout.write(`${signal.id} -> ${target} [${status}]\n`);
+  process.stdout.write(formatOutbound({
+    target,
+    content,
+    timestamp: signal.timestamp,
+    status,
+  }) + '\n');
   return 0;
 });

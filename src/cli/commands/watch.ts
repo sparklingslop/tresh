@@ -8,6 +8,7 @@ import { registerCommand } from '../registry';
 import { watchInbox } from '../../core/watch';
 import { resolveMyNodeHome } from '../../core/identity';
 import { resolveHome } from '../../types';
+import { formatInbound } from '../../core/display';
 
 registerCommand('watch', async (_args, flags) => {
   const home = resolveHome();
@@ -36,8 +37,12 @@ registerCommand('watch', async (_args, flags) => {
         continue;
       }
 
-      const time = signal.timestamp.slice(11, 19);
-      process.stdout.write(`${time}  ${signal.sender} [${signal.type}/${signal.channel}]  ${signal.content}\n`);
+      process.stdout.write(formatInbound({
+        sender: signal.sender,
+        content: signal.content,
+        timestamp: signal.timestamp,
+        type: signal.type,
+      }) + '\n');
     }
   } finally {
     process.removeListener('SIGINT', onSigint);
