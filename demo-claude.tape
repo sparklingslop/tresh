@@ -1,104 +1,74 @@
-# tmesh + Claude Code demo
-# Shows how to set up two Claude Code agents on the mesh
+# tmesh + Claude Code: two real Claude sessions communicating
+# Recorded with vhs (https://github.com/charmbracelet/vhs)
 
 Output assets/demo-claude.gif
 
 Set Shell "bash"
-Set FontSize 14
-Set Width 1100
-Set Height 600
+Set FontSize 13
+Set Width 1200
+Set Height 650
 Set Padding 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 40ms
+Set TypingSpeed 30ms
 
-# Launch orchestrator
+# --- Launch two Claude Code sessions (hidden) ---
 Hide
-Type "bash scripts/demo-claude-record.sh"
+Type "bash scripts/demo-claude-live.sh"
 Enter
-Sleep 5s
+# Wait for both Claude instances to fully load
+Sleep 25s
 Show
 
-# --- Clean split: left ($) | right ($) ---
-Sleep 1s
-
-# Left pane: one-time setup
-Type "tmesh setup"
+# --- Attach to see both Claude sessions side by side ---
+Type "tmux attach -t cc-demo"
 Enter
-Sleep 2s
+Sleep 4s
 
-# Left pane: join the mesh as agent-alpha
-Type "tmesh join agent-alpha --no-watch"
+# --- Alpha's Claude: send a tmesh message to beta ---
+# ! prefix runs shell commands in Claude Code
+Type "! tmesh send beta 'auth refactor done, all 421 tests pass'"
 Enter
-Sleep 2s
+Sleep 10s
 
-# Switch to right pane
+# --- Switch to beta's pane ---
 Ctrl+b
 Right
-Sleep 600ms
-
-# Right pane: join as agent-beta
-Type "tmesh join agent-beta --no-watch"
-Enter
 Sleep 2s
 
-# Right pane: check who's on the mesh
-Type "tmesh who"
+# --- Beta's Claude: check inbox ---
+Type "! tmesh log --inbox"
 Enter
-Sleep 2.5s
+Sleep 10s
 
-# Switch back to left (alpha)
+# --- Beta replies ---
+Type "! tmesh send alpha 'nice, merging to main'"
+Enter
+Sleep 10s
+
+# --- Switch back to alpha ---
 Ctrl+b
 Left
-Sleep 600ms
-
-# Alpha sends a message to beta
-Type "tmesh send agent-beta 'auth refactor done, 421 tests pass'"
-Enter
-Sleep 3s
-
-# Switch to beta
-Ctrl+b
-Right
-Sleep 600ms
-
-# Beta checks inbox
-Type "tmesh log --inbox"
-Enter
-Sleep 2.5s
-
-# Beta replies
-Type "tmesh send agent-alpha 'nice, merging to main'"
-Enter
-Sleep 3s
-
-# Switch to alpha
-Ctrl+b
-Left
-Sleep 600ms
-
-# Alpha sees the reply
-Type "tmesh log"
-Enter
-Sleep 3s
-
-# Alpha launches Claude Code
-Type "# ready -- now launch Claude Code in each session"
-Enter
-Sleep 1.5s
-Type "claude"
-Enter
-Sleep 3s
-
-# Hold
 Sleep 2s
 
-# Cleanup
+# --- Alpha sees the full conversation ---
+Type "! tmesh log"
+Enter
+Sleep 10s
+
+# --- Hold final frame ---
+Sleep 3s
+
+# --- Cleanup (hidden) ---
 Hide
-Ctrl+c
-Sleep 500ms
-Type "exit"
+Type "/exit"
 Enter
-Sleep 300ms
+Sleep 2s
+Ctrl+b
+Right
+Sleep 500ms
+Type "/exit"
+Enter
+Sleep 2s
 Ctrl+b
 Type ":"
 Type "kill-session"
