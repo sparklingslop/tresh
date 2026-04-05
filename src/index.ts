@@ -98,6 +98,19 @@ export {
   buildPeekCommand,
 } from './core/inject';
 
+// Display formatting + parsing
+export {
+  formatOutbound,
+  formatInbound,
+  parseLogLine,
+} from './core/display';
+
+export type {
+  OutboundDisplay,
+  InboundDisplay,
+  ParsedLogLine,
+} from './core/display';
+
 // Conversation log
 export {
   appendOutbound,
@@ -109,6 +122,14 @@ export type {
   OutboundEntry,
   InboundEntry,
 } from './core/conversation';
+
+// Watch pane
+export {
+  openWatchPane,
+  closeWatchPane,
+  hasWatchPane,
+  buildWatchPaneCommand,
+} from './core/watchpane';
 
 // Wire format (agent-to-agent protocol)
 export {

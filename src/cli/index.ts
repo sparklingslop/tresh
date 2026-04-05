@@ -121,11 +121,14 @@ Usage: tmesh <command> [options]
 
 Commands:
   setup       One-time global install (home dir + tmux hooks)
-  join        Join the mesh (set identity, create inbox)
+  join        Join the mesh (set identity, create inbox, open watch pane)
   send        Send a message to a node (or * for broadcast)
   log         Conversation history, inbox, and live tail
   who         Show mesh nodes and topology
   peek        Capture-pane snapshot of a tmux session
+
+Flags (join):
+  --no-watch            Skip auto-watch pane
 
 Flags (send):
   --ping                Send a ping signal (no message needed)
@@ -137,6 +140,7 @@ Flags (log):
   --follow, -f          Live tail (like tail -f)
   --tail <n>            Show last N lines
   --peer <name>         Filter by peer identity
+  --channel <name>      Filter by channel
   --inbox               List pending signals
   --read <signal-id>    Read a specific signal
   --ack <signal-id>     Acknowledge (delete) a signal

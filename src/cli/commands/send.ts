@@ -138,7 +138,10 @@ async function sendDirect(
 
   // Append to sender's conversation log
   const senderNodeHome = resolveNodeHome(sender, home);
-  await appendOutbound(senderNodeHome, { target, content, timestamp: signal.timestamp });
+  await appendOutbound(senderNodeHome, {
+    target, content, timestamp: signal.timestamp,
+    channel: channel !== 'default' ? channel : undefined,
+  });
 
   // Also handle @-mentions in content (deliver to mentioned nodes too)
   const mentions = parseMentions(content);
@@ -204,6 +207,7 @@ async function sendBroadcast(
     target: '*',
     content,
     timestamp: signalResult.value.timestamp,
+    channel: channel !== 'default' ? channel : undefined,
   });
 
   const outbound = formatOutbound({

@@ -110,6 +110,7 @@ export async function deliverSignal(
       content: signal.content,
       timestamp: signal.timestamp,
       type: signal.type,
+      channel: signal.channel !== 'default' ? signal.channel : undefined,
     });
   } catch {
     // Non-fatal -- signal was delivered, log is best-effort

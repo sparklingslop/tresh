@@ -10,7 +10,7 @@ registerCommand('watch', async (_args, flags) => {
   const logFlags = new Map<string, string | boolean>([['follow', true]]);
   const channel = flags.get('channel');
   if (typeof channel === 'string') {
-    logFlags.set('peer', channel);
+    logFlags.set('channel', channel);
   }
   return logHandler([], logFlags);
 });

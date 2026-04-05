@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-04-05
+
+### Added
+
+- **Channel in conversation log**: Log lines now include `#channel` when the channel is not `default`. Both outbound (`-->`) and inbound (`<--`) entries include channel info.
+- **Structured log filtering**: `--peer` and `--channel` flags use parsed log line structure instead of naive substring matching. Filters can be combined.
+- **Log rotation**: Conversation logs auto-rotate at 1MB. Up to 3 rotations (`conversation.log.1`, `.2`, `.3`).
+- **Auto-watch pane**: `tmesh join` automatically opens a 6-line tmux split pane running `tmesh log --follow`. Opt-out with `--no-watch`. Detects existing watch panes to prevent duplicates.
+- **`parseLogLine()`**: Exported utility for structured parsing of conversation log lines (direction, peer, channel).
+- **Standalone binary**: macOS binary attached to GitHub release (57MB, zero runtime dependencies).
+
+### Architecture
+
+- 421+ tests, 998+ assertions
+- Watch pane module (`src/core/watchpane.ts`) for tmux pane lifecycle management
+
 ## [0.0.7] - 2026-04-05
 
 ### Changed
@@ -161,6 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.8]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.8
 [0.0.7]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.7
 [0.0.6]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.6
 [0.0.5]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.5
