@@ -79,26 +79,30 @@ export function parseWireMessage(text: string): ParsedWireMessage | null {
  */
 export const PROTOCOL_MD = `# tmesh protocol
 
-You are connected to a tmesh mesh -- a tmux-native agent communication network.
+You are on a tmesh mesh -- a tmux-native agent communication network.
 
-## Receiving signals
+## Message format
 
-Signals arrive as messages in your prompt, formatted as:
+Incoming signals appear in your prompt as:
 
-    [tmesh HH:MM] sender-name: message content
+    [tmesh YYYY-MM-DD HH:MM:SS] <-- sender: message content
 
-The full signal with metadata is in your inbox as a JSON file at:
-~/.tmesh/nodes/{your-identity}/inbox/{signal-id}.json
+When you send, the output looks like:
+
+    [tmesh YYYY-MM-DD HH:MM:SS] --> target: your message  (delivered)
 
 ## Replying
 
-To reply to a signal, use tmesh send:
+To reply to a signal, run tmesh send and THEN echo the formatted line as your text response:
 
-    tmesh send {sender-name} "your reply message"
+    tmesh send {sender} "your reply"
 
-Example: if you receive "[tmesh 16:30] tmesh-hq: status check", reply with:
+IMPORTANT: After sending, always output the tmesh line from the send output
+as your own text response so it appears in the conversation. Example:
 
-    tmesh send tmesh-hq "All systems nominal. 218 tests passing."
+    [tmesh 2026-04-05 14:50:05] --> tmesh-hq: All systems nominal.  (delivered)
+
+This ensures both incoming and outgoing messages are visible in the conversation.
 
 ## Commands
 
@@ -106,6 +110,7 @@ Example: if you receive "[tmesh 16:30] tmesh-hq: status check", reply with:
     tmesh read {id}          Read a specific signal
     tmesh ack {id}           Acknowledge and delete a signal
     tmesh send {target} ...  Send a signal to another node
+    tmesh message {target} . Send with injection + notification
     tmesh who                See who is on the mesh
 
 ## Identity
