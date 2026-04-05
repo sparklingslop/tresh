@@ -1,0 +1,18 @@
+{
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run /Users/jankothyson/Code/sparkling-slop/tmesh/src/hooks/post-tool-tmesh.ts"
+          }
+        ]
+      }
+    ]
+  }
+}
