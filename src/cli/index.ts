@@ -7,12 +7,15 @@
 
 import { Ok, Err } from '../types';
 import type { Result } from '../types';
+import { getCommand } from './registry';
+export { registerCommand } from './registry';
+export type { CommandHandler } from './registry';
 
 // ---------------------------------------------------------------------------
 // Commands loaded in Phase 1:
-// import './commands/ls';
-// import './commands/who';
-// import './commands/identify';
+import './commands/ls';
+import './commands/who';
+import './commands/identify';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -25,11 +28,6 @@ export interface ParsedArgs {
   readonly flags: ReadonlyMap<string, string | boolean>;
 }
 
-export type CommandHandler = (
-  args: readonly string[],
-  flags: ReadonlyMap<string, string | boolean>,
-) => Promise<number>;
-
 // ---------------------------------------------------------------------------
 // CLI output helpers (stdout/stderr -- not application logging)
 // ---------------------------------------------------------------------------
@@ -41,12 +39,6 @@ function out(message: string): void {
 function cliError(message: string): void {
   process.stderr.write(message + '\n');
 }
-
-// ---------------------------------------------------------------------------
-// Command registry (module-level, populated by registerCommand)
-// ---------------------------------------------------------------------------
-
-const commands: Map<string, CommandHandler> = new Map();
 
 // ---------------------------------------------------------------------------
 // parseArgs
@@ -83,14 +75,6 @@ export function parseArgs(argv: readonly string[]): Result<ParsedArgs> {
   }
 
   return Ok({ command, args: positional, flags });
-}
-
-// ---------------------------------------------------------------------------
-// registerCommand
-// ---------------------------------------------------------------------------
-
-export function registerCommand(name: string, handler: CommandHandler): void {
-  commands.set(name, handler);
 }
 
 // ---------------------------------------------------------------------------
@@ -136,7 +120,7 @@ export async function run(argv: readonly string[]): Promise<number> {
     return 0;
   }
 
-  const handler = commands.get(command);
+  const handler = getCommand(command);
   if (handler === undefined) {
     cliError(`Unknown command: ${command}`);
     printUsage();
