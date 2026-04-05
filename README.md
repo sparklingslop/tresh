@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.1-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.2.0-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-139%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-208%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -23,24 +23,29 @@ Works with Claude Code, Cursor, Aider, Windsurf, or any process in a tmux pane.
 ### SDK (primary interface)
 
 ```typescript
-import { discover, discoverNodes, identify, createSignal } from 'tmesh';
+import { createTmesh } from 'tmesh';
 
-// Find all tmux sessions on this machine
-const sessions = await discover();
+// Initialize a mesh node
+const mesh = await createTmesh({ identity: 'my-agent' });
 
-// See which ones have mesh identities
-const nodes = await discoverNodes();
-
-// Claim your identity
-await identify('my-agent');
-
-// Create a signal (Phase 2 will add send/watch)
-const signal = createSignal({
-  sender: 'my-agent',
-  target: 'nano-cortex',
+// Send a signal to another node
+await mesh.send('nano-cortex', {
   type: 'message',
   content: 'Deploy complete. All tests pass.',
 });
+
+// Broadcast to all nodes
+await mesh.broadcast({
+  type: 'event',
+  channel: 'deploys',
+  content: JSON.stringify({ repo: 'tmesh', version: 'v0.2.0' }),
+});
+
+// Watch inbox for incoming signals
+for await (const signal of mesh.watch()) {
+  console.log(`${signal.sender}: ${signal.content}`);
+  await mesh.ack(signal.id);
+}
 ```
 
 ### CLI
@@ -49,14 +54,20 @@ const signal = createSignal({
 # Install
 bun add tmesh
 
-# See what's running
-tmesh ls
-
 # Claim an identity on the mesh
 tmesh identify my-agent
 
-# Who's online?
-tmesh who
+# See what's running
+tmesh ls
+
+# Send a message
+tmesh send nano-cortex "Deploy complete"
+
+# Watch incoming signals
+tmesh watch
+
+# See the full topology
+tmesh topology
 ```
 
 ## Why tmux?
@@ -240,6 +251,78 @@ $ tmesh who
   nano-mesh      kai-claude-code-2    claude    active
 ```
 
+### `tmesh send <target> "message"`
+
+Send a signal to a specific node.
+
+```
+$ tmesh send nano-cortex "Deploy complete"
+Sent 01ABC123... to nano-cortex
+```
+
+Flags: `--type message|command|event`, `--channel <name>`, `--ttl <seconds>`
+
+### `tmesh broadcast "message"`
+
+Send a signal to all known nodes.
+
+```
+$ tmesh broadcast "Shutting down for maintenance"
+Broadcast 01ABC123... to 3 node(s)
+```
+
+### `tmesh cast <channel> "message"`
+
+Send to a specific channel/topic across all nodes.
+
+```
+$ tmesh cast deploys "v1.0 released"
+Cast 01ABC123... to 3 node(s) on channel "deploys"
+```
+
+### `tmesh inbox`
+
+List pending signals in the inbox.
+
+```
+$ tmesh inbox
+01ABC123  14:30:15  nano-cortex [message]  Deploy complete. All tests pass.
+01DEF456  14:31:02  nano-mesh [event]      New node joined: alpha
+```
+
+### `tmesh read <signal-id>`
+
+Read a specific signal by ID.
+
+### `tmesh ack <signal-id>`
+
+Acknowledge (delete) a signal from the inbox.
+
+### `tmesh watch`
+
+Tail incoming signals in real-time (like `tail -f`). Supports `--channel` filter.
+
+### `tmesh ping <target>`
+
+Ping a node (delivery check).
+
+### `tmesh topology`
+
+Show all nodes and their connection state.
+
+```
+$ tmesh topology
+Topology:
+
+  * nano-cortex (this node) [2 signal(s) in inbox]
+
+  Known peers:
+    - nano-mesh [0 signal(s) pending]
+    - alpha [1 signal(s) pending]
+
+  Total: 3 node(s)
+```
+
 ## SDK / Library API
 
 tmesh is a library first, CLI second. The CLI dogfoods the SDK.
@@ -248,58 +331,62 @@ tmesh is a library first, CLI second. The CLI dogfoods the SDK.
 bun add tmesh
 ```
 
-### Discovery
+### createTmesh() -- the primary API
 
 ```typescript
-import { discover, discoverNodes, parseTmuxSessions, parseTmuxPanes } from 'tmesh';
+import { createTmesh } from 'tmesh';
 
-// All tmux sessions (raw)
-const sessions = await discover();
-
-// Only sessions with mesh identities
-const nodes = await discoverNodes();
-
-// Lower-level: parse tmux output yourself
-const parsed = parseTmuxSessions(rawTmuxOutput);
-```
-
-### Identity
-
-```typescript
-import { identify, readIdentity, resolveSessionIdentity, ensureHome } from 'tmesh';
-
-// Set identity for this session
-await identify('my-agent');
-
-// Read current identity
-const id = await readIdentity();
-
-// Resolve from env var or identity file
-const resolved = await resolveSessionIdentity('session-name');
-
-// Ensure ~/.tmesh/ directory structure exists
-await ensureHome();
-```
-
-### Signals
-
-```typescript
-import { createSignal, generateUlid, isValidUlid, decodeUlidTimestamp } from 'tmesh';
-
-// Create a signal (ready for Phase 2 send/receive)
-const signal = createSignal({
-  sender: 'my-agent',
-  target: 'nano-cortex',
-  type: 'event',
-  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.1' }),
-  channel: 'releases',
-  ttl: 300,
+const mesh = await createTmesh({
+  identity: 'my-agent',
+  home: '~/.tmesh',       // optional, default
 });
 
-// ULID utilities (zero-dep, monotonic, Crockford base32)
-const id = generateUlid();
-const valid = isValidUlid(id);         // true
-const ts = decodeUlidTimestamp(id);     // Date
+// Send to a specific node
+await mesh.send('nano-cortex', {
+  type: 'message',
+  content: 'Deploy complete.',
+});
+
+// Broadcast to all known nodes
+await mesh.broadcast({
+  type: 'event',
+  channel: 'deploys',
+  content: JSON.stringify({ version: 'v1.0' }),
+});
+
+// List known peers
+const nodes = await mesh.discover();
+
+// List inbox
+const signals = await mesh.inbox();
+
+// Watch for incoming signals (async iterator)
+for await (const signal of mesh.watch()) {
+  console.log(`${signal.sender}: ${signal.content}`);
+  await mesh.ack(signal.id);
+}
+
+// Clean expired signals
+const cleaned = await mesh.clean();
+```
+
+### Lower-level APIs
+
+```typescript
+import {
+  // Discovery
+  discover, discoverNodes, parseTmuxSessions,
+  // Identity
+  identify, readIdentity, resolveSessionIdentity, ensureHome,
+  // Signals
+  createSignal, generateUlid, isValidUlid, decodeUlidTimestamp,
+  // Transport
+  deliverSignal, listInbox, readSignalFile, ackSignal, cleanExpired,
+  // Watch
+  watchInbox,
+  // Nodes
+  listNodes,
+} from 'tmesh';
 ```
 
 ### Types
@@ -308,51 +395,31 @@ tmesh uses branded types for compile-time safety:
 
 ```typescript
 import type {
-  TmeshNode,
-  TmeshSignal,
-  TmeshConfig,
-  SignalType,
-  NodeStatus,
-  Ulid,
-  Result,
+  Tmesh, TmeshOptions, SendOptions, BroadcastOptions,
+  TmeshNode, TmeshSignal, TmeshConfig,
+  SignalType, NodeStatus, Ulid, Result,
 } from 'tmesh';
-
-import { Ok, Err, SessionName, Identity } from 'tmesh';
-
-// Branded constructors -- invalid values won't compile
-const session = SessionName('my-session');
-const identity = Identity('nano-cortex');
-
-// Result monad -- no exceptions
-const result: Result<string, Error> = Ok('value');
 ```
 
-## What's in 0.0.1
+## What's in 0.2.0
 
-This is Phase 1: Discovery + Identity + Signal foundations.
+Phases 1-4 complete: Discovery, Transport, Full CLI, and Library API.
 
 **Shipped:**
-- `tmesh ls` -- list all tmux sessions with mesh metadata (`--json` supported)
-- `tmesh identify <name>` -- set mesh identity (atomic write + tmux env var)
-- `tmesh who` -- show online mesh nodes
-- SDK entry point with full TypeScript exports
+- 12 CLI commands: `ls`, `who`, `identify`, `send`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`
+- `createTmesh()` factory -- the primary library API with send, broadcast, discover, inbox, watch, ack, clean
+- File-based signal transport with atomic writes (temp + rename)
+- Inbox watcher with `fs.watch` + polling fallback and `AbortSignal` support
+- TTL-based signal expiry and cleanup
+- Standalone binary via `bun build --compile`
 - Branded types (`SessionName`, `Identity`, `Ulid`) with `Result<T, E>` monad
 - Monotonic ULID generation (zero-dep, Crockford base32)
-- `TmeshSignal` type and `createSignal()` factory
-- 139+ tests, 481+ assertions
+- 208+ tests, 611+ assertions
 - Zero production dependencies
 
-**Next (Phase 2):**
-- `tmesh send <target> "message"` -- file-based signal delivery
-- `tmesh watch` -- async inbox watcher (`fs.watch` + polling fallback)
-- `tmesh broadcast` -- send to all nodes
-- `tmesh inbox` / `tmesh read` / `tmesh ack`
-
-**Later:**
-- Direct injection (`tmesh inject`, `tmesh peek`)
-- `createTmesh()` factory with async iterator watch
-- Standalone binary via `bun build`
-- npm publish
+**Next (Phase 5):**
+- Direct injection (`tmesh inject`, `tmesh peek`) -- Layer 1 raw tmux integration
+- npm publish + GitHub release
 
 ## Comparison with Alternatives
 
