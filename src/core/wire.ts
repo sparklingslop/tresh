@@ -1,27 +1,16 @@
 /**
- * tmesh wire format -- the protocol for agent-to-agent messages.
+ * tmesh wire format -- protocol and display layers.
  *
- * Single-line, pipe-delimited format designed for tmux send-keys injection.
- * No newlines, no quotes in metadata, no XML. Clean in any terminal.
+ * PROTOCOL: JSON signal files on disk (TmeshSignal).
+ *   Complete metadata. Handled by transport.ts.
  *
- * Format:
- *   [tmesh|from:alice|to:bob|type:command|ch:default|id:01K...] Message content here. Reply via: tmesh send alice "your reply"
- *
- * Why this format:
- * - Single line: no \n escaping issues in tmux send-keys
- * - No quotes in header: no \" mangling
- * - Pipe-delimited: easy to parse, impossible to confuse with prose
- * - [tmesh|...] prefix: instantly recognizable by any agent
- * - Reply instruction inline: agent knows exactly how to respond
+ * DISPLAY: Short text injected into agent sessions.
+ *   Designed for tmux panes (80-120 chars wide).
+ *   Shows: who sent it, brief preview, how to read more, how to reply.
+ *   Full content is in the inbox -- use `tmesh read <id>`.
  *
  * Zero dependencies -- pure TypeScript.
  */
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-export const WIRE_PREFIX = '[tmesh ';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,75 +27,56 @@ export interface WireMessage {
 
 export interface ParsedWireMessage {
   readonly from: string;
-  readonly to: string;
-  readonly type: string;
-  readonly channel: string;
   readonly content: string;
-  readonly id: string;
 }
 
 // ---------------------------------------------------------------------------
-// Format
+// Display format
 // ---------------------------------------------------------------------------
+
+export const WIRE_PREFIX = '[tmesh';
 
 /**
- * Format a signal into the tmesh wire format for injection.
+ * Format a signal for injection into an agent session.
  *
- * Produces a single clean line with no special characters in the header.
+ * Short enough to fit on ~2 lines of an 80-char tmux pane.
+ * Full content is in the inbox -- this is just the notification.
+ *
+ * Result (short messages):
+ *   [tmesh from tmesh-hq] Deploy complete. Reply: tmesh send tmesh-hq ...
+ *
+ * Result (long messages):
+ *   [tmesh from tmesh-hq] Deploy compl... Read: tmesh read 01K... Reply: tmesh send tmesh-hq ...
  */
-export interface FormatOptions {
-  /** Override the tmesh binary path in reply instructions. */
-  readonly bin?: string;
-}
-
-export function formatWireMessage(msg: WireMessage, options?: FormatOptions): string {
-  const maxContent = 280;
-  const content = msg.content.length > maxContent
-    ? msg.content.slice(0, maxContent - 3) + '...'
+export function formatWireMessage(msg: WireMessage): string {
+  const maxPreview = 80;
+  const preview = msg.content.length > maxPreview
+    ? msg.content.slice(0, maxPreview - 3) + '...'
     : msg.content;
 
-  const bin = options?.bin ?? 'tmesh';
-  const header = `[tmesh from:${msg.from} to:${msg.to} type:${msg.type} ch:${msg.channel} id:${msg.id}]`;
+  const parts = [`[tmesh from ${msg.from}] ${preview}`];
 
-  return `${header} ${content} -- reply via: ${bin} send ${msg.from} "your reply"`;
+  // If content was truncated, tell agent how to read the full message
+  if (msg.content.length > maxPreview) {
+    parts.push(`Read: tmesh read ${msg.id}`);
+  }
+
+  parts.push(`Reply: tmesh send ${msg.from} ...`);
+
+  return parts.join(' -- ');
 }
 
 // ---------------------------------------------------------------------------
 // Parse
 // ---------------------------------------------------------------------------
 
-const HEADER_PATTERN = /\[tmesh ([^\]]+)\]/;
-const FIELD_PATTERN = /(\w+):(\S+)/g;
+const DISPLAY_PATTERN = /\[tmesh from (\S+)\]\s+(.+?)(?:\s+--|\s*$)/;
 
 /**
- * Parse a tmesh wire message from text.
- * Returns null if the text is not a tmesh wire message.
+ * Parse a tmesh display message. Returns null if not a tmesh message.
  */
 export function parseWireMessage(text: string): ParsedWireMessage | null {
-  const headerMatch = text.match(HEADER_PATTERN);
-  if (!headerMatch) return null;
-
-  const headerContent = headerMatch[1]!;
-  const fields: Record<string, string> = {};
-
-  for (const match of headerContent.matchAll(FIELD_PATTERN)) {
-    fields[match[1]!] = match[2]!;
-  }
-
-  if (!fields['from'] || !fields['to'] || !fields['type']) return null;
-
-  // Content is everything after the ] and before " -- reply via:"
-  const headerEnd = text.indexOf(']');
-  const replyMarker = text.indexOf(' -- reply via:');
-  const contentEnd = replyMarker !== -1 ? replyMarker : text.length;
-  const content = text.slice(headerEnd + 2, contentEnd).trim();
-
-  return {
-    from: fields['from']!,
-    to: fields['to']!,
-    type: fields['type']!,
-    channel: fields['ch'] ?? 'default',
-    content,
-    id: fields['id'] ?? '',
-  };
+  const match = text.match(DISPLAY_PATTERN);
+  if (!match) return null;
+  return { from: match[1]!, content: match[2]! };
 }
