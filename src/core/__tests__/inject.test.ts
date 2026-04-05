@@ -13,7 +13,6 @@ import {
   escapeForTmux,
   validateSessionTarget,
 } from '../inject';
-import type { InjectOptions, PeekOptions } from '../inject';
 
 // ---------------------------------------------------------------------------
 // escapeForTmux -- security-critical, thorough coverage

@@ -64,7 +64,7 @@ registerCommand('@', async (args, _flags) => {
     if (deliverResult.ok) {
       delivered++;
       // Best-effort tmux notification
-      await notifyNode(target, sender, 'message', content);
+      notifyNode(target, sender, 'message', content);
     }
   }
 

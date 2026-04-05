@@ -5,7 +5,7 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.8-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.9-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
   <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-421%2B%20passing-brightgreen" alt="tests"></a>

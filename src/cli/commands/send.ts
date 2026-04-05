@@ -111,7 +111,7 @@ async function sendDirect(
   }
 
   // Wire injection into live session (best-effort)
-  const session = await findSessionForIdentity(target);
+  const session = findSessionForIdentity(target);
   let injected = false;
 
   if (session !== null) {
@@ -156,7 +156,7 @@ async function sendDirect(
     });
     if (mentionSignal.ok) {
       await deliverSignal(mentionSignal.value, `${home}/nodes/${mentioned}`);
-      await notifyNode(mentioned, sender, signalType, content);
+      notifyNode(mentioned, sender, signalType, content);
     }
   }
 
