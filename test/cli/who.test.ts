@@ -38,8 +38,8 @@ describe('filterIdentifiedNodes', () => {
   it('returns only nodes with identity', () => {
     const result = filterIdentifiedNodes(mockNodes);
     expect(result).toHaveLength(2);
-    expect(result[0]!.identity).toBe('nano-cortex');
-    expect(result[1]!.identity).toBe('nano-mesh');
+    expect(result[0]!.identity as string).toBe('nano-cortex');
+    expect(result[1]!.identity as string).toBe('nano-mesh');
   });
 
   it('returns empty array when no nodes have identity', () => {

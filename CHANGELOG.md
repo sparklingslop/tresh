@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.10] - 2026-04-05
+
+### Added
+
+- **Demo GIF**: 30-second terminal recording showing two agents exchanging signals, embedded in README. Recorded with [vhs](https://github.com/charmbracelet/vhs).
+- **GitHub Actions CI**: Test, typecheck, and build verification on push/PR to main. Uses `oven-sh/setup-bun@v2`.
+- **CI badge**: README badge now links to live GitHub Actions status.
+- **VHS tape**: `demo.tape` and `scripts/demo-setup.sh` for reproducible demo recording.
+
+### Fixed
+
+- **tsconfig**: Widened `rootDir` to include both `src/` and `test/` directories, fixing tsc errors from legacy test bridge files.
+- **Branded type assertions**: All test files now cast branded types (`Identity`, `SessionName`) to `string` for `.toBe()` assertions.
+
+### Architecture
+
+- `bun x tsc --noEmit` passes with zero errors
+- 421+ tests, 998+ assertions
+
 ## [0.0.9] - 2026-04-05
 
 ### Fixed
@@ -189,6 +208,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.10]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.10
 [0.0.9]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.9
 [0.0.8]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.8
 [0.0.7]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.7

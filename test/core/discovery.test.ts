@@ -313,10 +313,10 @@ describe('discoverNodes', () => {
     const nodes = discoverNodes(sessions, panes, identities);
 
     const main = nodes.find((n) => n.sessionName === 'main');
-    expect(main!.identity).toBe('kai.main');
+    expect(main!.identity as string).toBe('kai.main');
 
     const work = nodes.find((n) => n.sessionName === 'work');
-    expect(work!.identity).toBe('kai.work');
+    expect(work!.identity as string).toBe('kai.work');
   });
 
   it('sets identity to null when session is not in the map', () => {
@@ -374,7 +374,7 @@ describe('discoverNodes', () => {
     // but we verify the value is correct
     const main = nodes.find((n) => n.sessionName === 'main');
     expect(typeof main!.sessionName).toBe('string');
-    expect(main!.sessionName).toBe('main');
+    expect(main!.sessionName as string).toBe('main');
   });
 
   it('handles empty identities map', () => {
@@ -394,7 +394,7 @@ describe('discoverNodes', () => {
 
     const nodes = discoverNodes(singleSession, singlePane, new Map());
     expect(nodes).toHaveLength(1);
-    expect(nodes[0]!.sessionName).toBe('solo');
+    expect(nodes[0]!.sessionName as string).toBe('solo');
     expect(nodes[0]!.pid).toBe(1111);
     expect(nodes[0]!.status).toBe('active');
   });

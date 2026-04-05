@@ -100,7 +100,7 @@ describe('collectVizData', () => {
 
     const data = await collectVizData(tempDir);
     expect(data.recentSignals.length).toBe(1);
-    expect(data.recentSignals[0]!.sender).toBe('bob');
+    expect(data.recentSignals[0]!.sender as string).toBe('bob');
     expect(data.recentSignals[0]!.content).toBe('hello alice');
   });
 
