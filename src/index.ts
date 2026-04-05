@@ -98,6 +98,19 @@ export {
   buildPeekCommand,
 } from './core/inject';
 
+// Wire format (agent-to-agent protocol)
+export {
+  formatWireMessage,
+  parseWireMessage,
+  WIRE_PREFIX,
+  WIRE_SUFFIX,
+} from './core/wire';
+
+export type {
+  WireMessage,
+  ParsedWireMessage,
+} from './core/wire';
+
 // Mention (@ routing)
 export {
   parseMentions,
