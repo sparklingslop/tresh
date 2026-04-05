@@ -8,7 +8,6 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { ensureHome, writeIdentity } from '../../../core/identity';
-import { WIRE_PREFIX } from '../../../core/wire';
 
 let tempDir: string;
 let originalEnv: string | undefined;

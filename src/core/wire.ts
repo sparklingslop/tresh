@@ -1,14 +1,18 @@
 /**
- * tmesh wire format — the protocol for agent-to-agent messages.
+ * tmesh wire format -- the protocol for agent-to-agent messages.
  *
- * When tmesh injects a message into a live agent session, it uses this
- * structured format so that:
- * 1. The receiving agent KNOWS this is a tmesh signal (not user input)
- * 2. The receiving agent knows WHO sent it
- * 3. The receiving agent knows HOW TO REPLY (exact tmesh command)
- * 4. Any harness (Claude Code, Cursor, Aider, etc.) can parse it
+ * Single-line, pipe-delimited format designed for tmux send-keys injection.
+ * No newlines, no quotes in metadata, no XML. Clean in any terminal.
  *
- * Wire format uses XML-like tags because LLM agents parse them natively.
+ * Format:
+ *   [tmesh|from:alice|to:bob|type:command|ch:default|id:01K...] Message content here. Reply via: tmesh send alice "your reply"
+ *
+ * Why this format:
+ * - Single line: no \n escaping issues in tmux send-keys
+ * - No quotes in header: no \" mangling
+ * - Pipe-delimited: easy to parse, impossible to confuse with prose
+ * - [tmesh|...] prefix: instantly recognizable by any agent
+ * - Reply instruction inline: agent knows exactly how to respond
  *
  * Zero dependencies -- pure TypeScript.
  */
@@ -17,8 +21,7 @@
 // Constants
 // ---------------------------------------------------------------------------
 
-export const WIRE_PREFIX = '<tmesh-signal';
-export const WIRE_SUFFIX = '</tmesh-signal>';
+export const WIRE_PREFIX = '[tmesh ';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,71 +50,63 @@ export interface ParsedWireMessage {
 // ---------------------------------------------------------------------------
 
 /**
- * Format a signal into the tmesh wire format for injection into an agent session.
+ * Format a signal into the tmesh wire format for injection.
  *
- * The format is designed to be:
- * - Recognizable by any LLM agent (XML-like tags)
- * - Self-documenting (includes reply instructions)
- * - Short enough for tmux send-keys (max ~400 chars)
- * - Parseable back into structured data
+ * Produces a single clean line with no special characters in the header.
  */
-export function formatWireMessage(msg: WireMessage): string {
-  // Truncate content for injection (tmux send-keys has practical limits)
+export interface FormatOptions {
+  /** Override the tmesh binary path in reply instructions. */
+  readonly bin?: string;
+}
+
+export function formatWireMessage(msg: WireMessage, options?: FormatOptions): string {
   const maxContent = 280;
   const content = msg.content.length > maxContent
     ? msg.content.slice(0, maxContent - 3) + '...'
     : msg.content;
 
-  return [
-    `${WIRE_PREFIX} from="${msg.from}" to="${msg.to}" type="${msg.type}" channel="${msg.channel}" id="${msg.id}">`,
-    content,
-    `To reply: tmesh send ${msg.from} "your reply"`,
-    WIRE_SUFFIX,
-  ].join('\n');
+  const bin = options?.bin ?? 'tmesh';
+  const header = `[tmesh from:${msg.from} to:${msg.to} type:${msg.type} ch:${msg.channel} id:${msg.id}]`;
+
+  return `${header} ${content} -- reply via: ${bin} send ${msg.from} "your reply"`;
 }
 
 // ---------------------------------------------------------------------------
 // Parse
 // ---------------------------------------------------------------------------
 
-const ATTR_PATTERN = /(\w+)="([^"]*)"/g;
+const HEADER_PATTERN = /\[tmesh ([^\]]+)\]/;
+const FIELD_PATTERN = /(\w+):(\S+)/g;
 
 /**
  * Parse a tmesh wire message from text.
  * Returns null if the text is not a tmesh wire message.
  */
 export function parseWireMessage(text: string): ParsedWireMessage | null {
-  if (!text.includes(WIRE_PREFIX)) return null;
+  const headerMatch = text.match(HEADER_PATTERN);
+  if (!headerMatch) return null;
 
-  // Extract opening tag
-  const tagStart = text.indexOf(WIRE_PREFIX);
-  const tagEnd = text.indexOf('>', tagStart);
-  if (tagEnd === -1) return null;
+  const headerContent = headerMatch[1]!;
+  const fields: Record<string, string> = {};
 
-  const openTag = text.slice(tagStart, tagEnd + 1);
-
-  // Parse attributes
-  const attrs: Record<string, string> = {};
-  for (const match of openTag.matchAll(ATTR_PATTERN)) {
-    attrs[match[1]!] = match[2]!;
+  for (const match of headerContent.matchAll(FIELD_PATTERN)) {
+    fields[match[1]!] = match[2]!;
   }
 
-  if (!attrs['from'] || !attrs['to'] || !attrs['type']) return null;
+  if (!fields['from'] || !fields['to'] || !fields['type']) return null;
 
-  // Extract content (between opening tag and "To reply:" line or closing tag)
-  const contentStart = tagEnd + 1;
-  const replyLine = text.indexOf('To reply:', contentStart);
-  const closingTag = text.indexOf(WIRE_SUFFIX, contentStart);
-  const contentEnd = replyLine !== -1 ? replyLine : (closingTag !== -1 ? closingTag : text.length);
-
-  const content = text.slice(contentStart, contentEnd).trim();
+  // Content is everything after the ] and before " -- reply via:"
+  const headerEnd = text.indexOf(']');
+  const replyMarker = text.indexOf(' -- reply via:');
+  const contentEnd = replyMarker !== -1 ? replyMarker : text.length;
+  const content = text.slice(headerEnd + 2, contentEnd).trim();
 
   return {
-    from: attrs['from']!,
-    to: attrs['to']!,
-    type: attrs['type']!,
-    channel: attrs['channel'] ?? 'default',
+    from: fields['from']!,
+    to: fields['to']!,
+    type: fields['type']!,
+    channel: fields['ch'] ?? 'default',
     content,
-    id: attrs['id'] ?? '',
+    id: fields['id'] ?? '',
   };
 }

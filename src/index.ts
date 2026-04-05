@@ -103,7 +103,6 @@ export {
   formatWireMessage,
   parseWireMessage,
   WIRE_PREFIX,
-  WIRE_SUFFIX,
 } from './core/wire';
 
 export type {

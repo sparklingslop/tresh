@@ -75,6 +75,8 @@ registerCommand('message', async (args, flags) => {
   }
 
   // 3. Format wire message
+  // Use short "tmesh" — if not in PATH, the reply instruction still shows intent
+  const tmeshBin = 'tmesh';
   const wire = formatWireMessage({
     id: signal.id,
     from: sender,
@@ -82,7 +84,7 @@ registerCommand('message', async (args, flags) => {
     type: signalType,
     channel,
     content,
-  });
+  }, { bin: tmeshBin });
 
   // 4. Inject into live session (best-effort)
   const session = await findSessionForIdentity(target);
