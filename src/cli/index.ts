@@ -3,6 +3,13 @@
  * tmesh CLI entry point.
  *
  * Minimal arg parser and command dispatcher. Zero dependencies.
+ *
+ * 6 essential commands (v0.0.7 consolidation):
+ *   setup, join, send, log, who, peek
+ *
+ * Hidden commands (still callable, not in help):
+ *   ls, identify, init, message, broadcast, cast, inbox, read, ack,
+ *   watch, ping, topology, inject, viz, @, hooks, register, deregister
  */
 
 import { Ok, Err } from '../types';
@@ -12,31 +19,32 @@ export { registerCommand } from './registry';
 export type { CommandHandler } from './registry';
 
 // ---------------------------------------------------------------------------
-// Commands loaded in Phase 1:
-import './commands/ls';
-import './commands/who';
-import './commands/identify';
-// Commands loaded in Phase 2:
+// Essential commands (v0.0.7):
+import './commands/setup';
+import './commands/join';
 import './commands/send';
+import './commands/log';
+import './commands/who';
+import './commands/peek';
+
+// Hidden commands (backwards compat, hook targets, power-user):
+import './commands/ls';
+import './commands/identify';
+import './commands/init';
+import './commands/message';
+import './commands/broadcast';
+import './commands/cast';
 import './commands/inbox';
 import './commands/read';
 import './commands/ack';
-// Commands loaded in Phase 3:
-import './commands/broadcast';
-import './commands/cast';
 import './commands/watch';
 import './commands/ping';
 import './commands/topology';
-// Commands loaded in Phase 5:
 import './commands/inject';
-import './commands/peek';
 import './commands/viz';
 import './commands/at';
-import './commands/message';
-import './commands/log';
 import './commands/hooks';
 import './commands/register';
-import './commands/init';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -89,6 +97,10 @@ export function parseArgs(argv: readonly string[]): Result<ParsedArgs> {
         flags.set(key, true);
         i += 1;
       }
+    } else if (token === '-f') {
+      // Short flag for --follow
+      flags.set('follow', true);
+      i += 1;
     } else {
       positional.push(token);
       i += 1;
@@ -108,30 +120,39 @@ function printUsage(): void {
 Usage: tmesh <command> [options]
 
 Commands:
-  ls          List all tmesh nodes (tmux sessions)
-  who         Show identity of current session
-  identify    Set identity for current session
-  send        Send a signal to a specific node
-  broadcast   Send a signal to all known nodes
-  cast        Send to a channel/topic
-  inbox       List pending signals in the inbox
-  read        Read a specific signal by ID
-  ack         Acknowledge (delete) a signal
-  watch       Tail incoming signals (like tail -f)
-  ping        Ping a node (delivery check)
-  topology    Show all nodes and connections
-  inject      Raw tmux send-keys injection
-  peek        Capture-pane snapshot of a session
-  viz         Visual mesh dashboard (requires gum)
-  message     Send to agent (file + inject + notify)
-  log         Show conversation history (both directions)
-  @           Send to all @mentioned nodes
-  init        Hot-bootstrap a session onto the mesh
-  hooks       Manage tmux auto-registration hooks
-  help        Show this help message
+  setup       One-time global install (home dir + tmux hooks)
+  join        Join the mesh (set identity, create inbox)
+  send        Send a message to a node (or * for broadcast)
+  log         Conversation history, inbox, and live tail
+  who         Show mesh nodes and topology
+  peek        Capture-pane snapshot of a tmux session
+
+Flags (send):
+  --ping                Send a ping signal (no message needed)
+  --type <type>         Signal type: message|command|event
+  --channel <name>      Channel/topic name
+  --ttl <seconds>       Time-to-live for the signal
+
+Flags (log):
+  --follow, -f          Live tail (like tail -f)
+  --tail <n>            Show last N lines
+  --peer <name>         Filter by peer identity
+  --inbox               List pending signals
+  --read <signal-id>    Read a specific signal
+  --ack <signal-id>     Acknowledge (delete) a signal
+
+Flags (who):
+  --all                 Show all tmux sessions (not just identified)
+  --topology            Show topology with inbox counts
+  --viz                 Visual dashboard (requires gum)
+  --json                JSON output
+
+Flags (setup):
+  --status              Show current setup state
+  --uninstall           Remove tmux hooks
 
 Options:
-  --help      Show help for a command
+  --help                Show this help message
 
 Run "tmesh <command> --help" for command-specific help.`;
   out(usage);
