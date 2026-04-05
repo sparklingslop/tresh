@@ -12,6 +12,7 @@ import { randomBytes } from 'node:crypto';
 
 import { Ok, Err } from '../types';
 import type { TmeshSignal, Result } from '../types';
+import { appendInbound } from './conversation';
 
 // ---------------------------------------------------------------------------
 // ensureInbox
@@ -100,6 +101,18 @@ export async function deliverSignal(
     await atomicWrite(inboxResult.value, filename, json);
   } catch (err: unknown) {
     return Err(err instanceof Error ? err : new Error(String(err)));
+  }
+
+  // Append to receiver's conversation log
+  try {
+    await appendInbound(targetHome, {
+      sender: signal.sender,
+      content: signal.content,
+      timestamp: signal.timestamp,
+      type: signal.type,
+    });
+  } catch {
+    // Non-fatal -- signal was delivered, log is best-effort
   }
 
   // Optional: write to sender outbox

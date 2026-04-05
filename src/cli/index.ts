@@ -33,6 +33,7 @@ import './commands/peek';
 import './commands/viz';
 import './commands/at';
 import './commands/message';
+import './commands/log';
 import './commands/hooks';
 import './commands/register';
 import './commands/init';
@@ -123,6 +124,7 @@ Commands:
   peek        Capture-pane snapshot of a session
   viz         Visual mesh dashboard (requires gum)
   message     Send to agent (file + inject + notify)
+  log         Show conversation history (both directions)
   @           Send to all @mentioned nodes
   init        Hot-bootstrap a session onto the mesh
   hooks       Manage tmux auto-registration hooks
