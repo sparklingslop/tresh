@@ -1,5 +1,5 @@
-# tmesh + Claude Code: two real Claude sessions communicating
-# Recorded with vhs (https://github.com/charmbracelet/vhs)
+# tmesh: two Claude Code agents self-coordinating
+# Alice and Bob are separate Claude sessions that communicate autonomously
 
 Output assets/demo-claude.gif
 
@@ -9,57 +9,46 @@ Set Width 1200
 Set Height 650
 Set Padding 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 30ms
+Set TypingSpeed 40ms
 
-# --- Launch two Claude Code sessions (hidden) ---
+# --- Launch alice and bob Claude sessions on the mesh ---
 Hide
 Type "bash scripts/demo-claude-live.sh"
 Enter
-# Wait for both Claude instances to fully load
-Sleep 25s
+Sleep 35s
 Show
 
-# --- Attach to see both Claude sessions side by side ---
+# --- Attach: both Claude sessions visible ---
 Type "tmux attach -t cc-demo"
 Enter
-Sleep 4s
+Sleep 5s
 
-# --- Alpha's Claude: send a tmesh message to beta ---
-# ! prefix runs shell commands in Claude Code
-Type "! tmesh send beta 'auth refactor done, all 421 tests pass'"
+# --- Alice: one prompt, then she coordinates autonomously ---
+Type@50ms "Send a message to bob via tmesh asking if he is ready to deploy v1.0. Then watch for his reply with tmesh log --follow."
 Enter
-Sleep 10s
+Sleep 40s
 
-# --- Switch to beta's pane ---
+# --- Bob: one prompt, then he handles it ---
 Ctrl+b
 Right
 Sleep 2s
 
-# --- Beta's Claude: check inbox ---
-Type "! tmesh log --inbox"
+Type@50ms "Check your tmesh inbox for messages and respond to the sender."
 Enter
-Sleep 10s
+Sleep 40s
 
-# --- Beta replies ---
-Type "! tmesh send alpha 'nice, merging to main'"
-Enter
-Sleep 10s
-
-# --- Switch back to alpha ---
+# --- Back to alice to see the reply ---
 Ctrl+b
 Left
-Sleep 2s
+Sleep 20s
 
-# --- Alpha sees the full conversation ---
-Type "! tmesh log"
-Enter
-Sleep 10s
+# --- Hold ---
+Sleep 5s
 
-# --- Hold final frame ---
-Sleep 3s
-
-# --- Cleanup (hidden) ---
+# --- Cleanup ---
 Hide
+Ctrl+c
+Sleep 1s
 Type "/exit"
 Enter
 Sleep 2s
