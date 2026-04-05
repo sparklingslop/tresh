@@ -6,33 +6,73 @@ import { describe, test, expect } from 'bun:test';
 import { formatWireMessage, parseWireMessage, WIRE_PREFIX } from '../wire';
 
 describe('formatWireMessage', () => {
-  test('produces parseable wire format', () => {
+  test('produces single-line output', () => {
     const wire = formatWireMessage({
       id: '01ABC123DEF456GHJ789KLMNPQ',
       from: 'tmesh-hq',
       to: 'nano-research',
       type: 'message',
       channel: 'default',
-      content: 'Status check. What are you working on?',
+      content: 'Status check',
     });
 
-    expect(wire).toContain(WIRE_PREFIX);
-    expect(wire).toContain('tmesh-hq');
-    expect(wire).toContain('nano-research');
-    expect(wire).toContain('Status check');
+    expect(wire).not.toContain('\n');
   });
 
-  test('includes reply instruction', () => {
+  test('starts with [tmesh| prefix', () => {
+    const wire = formatWireMessage({
+      id: '01ABC123DEF456GHJ789KLMNPQ',
+      from: 'alice',
+      to: 'bob',
+      type: 'message',
+      channel: 'default',
+      content: 'hello',
+    });
+
+    expect(wire.startsWith(WIRE_PREFIX)).toBe(true);
+  });
+
+  test('includes all metadata fields', () => {
     const wire = formatWireMessage({
       id: '01ABC123DEF456GHJ789KLMNPQ',
       from: 'tmesh-hq',
       to: 'nano-research',
       type: 'command',
-      channel: 'default',
-      content: 'Do something',
+      channel: 'ops',
+      content: 'deploy',
     });
 
-    expect(wire).toContain('tmesh send tmesh-hq');
+    expect(wire).toContain('from:tmesh-hq');
+    expect(wire).toContain('to:nano-research');
+    expect(wire).toContain('type:command');
+    expect(wire).toContain('ch:ops');
+    expect(wire).toContain('id:01ABC');
+  });
+
+  test('includes reply instruction with sender name', () => {
+    const wire = formatWireMessage({
+      id: '01ABC123DEF456GHJ789KLMNPQ',
+      from: 'tmesh-hq',
+      to: 'bob',
+      type: 'message',
+      channel: 'default',
+      content: 'hello',
+    });
+
+    expect(wire).toContain('reply via: tmesh send tmesh-hq');
+  });
+
+  test('includes content', () => {
+    const wire = formatWireMessage({
+      id: '01ABC123DEF456GHJ789KLMNPQ',
+      from: 'alice',
+      to: 'bob',
+      type: 'message',
+      channel: 'default',
+      content: 'Hello from the mesh',
+    });
+
+    expect(wire).toContain('Hello from the mesh');
   });
 
   test('truncates long content', () => {
@@ -46,20 +86,22 @@ describe('formatWireMessage', () => {
       content: long,
     });
 
-    expect(wire.length).toBeLessThan(600);
+    expect(wire.length).toBeLessThan(500);
   });
 
-  test('handles special characters safely', () => {
+  test('has no quotes in header section', () => {
     const wire = formatWireMessage({
       id: '01ABC123DEF456GHJ789KLMNPQ',
       from: 'alice',
       to: 'bob',
       type: 'message',
       channel: 'default',
-      content: 'Contains "quotes" and <angles>',
+      content: 'test',
     });
 
-    expect(wire).toContain('quotes');
+    const header = wire.slice(0, wire.indexOf(']') + 1);
+    expect(header).not.toContain('"');
+    expect(header).not.toContain("'");
   });
 });
 
@@ -69,7 +111,7 @@ describe('parseWireMessage', () => {
       id: '01ABC123DEF456GHJ789KLMNPQ',
       from: 'tmesh-hq',
       to: 'nano-research',
-      type: 'message',
+      type: 'command',
       channel: 'default',
       content: 'Hello from the mesh',
     });
@@ -78,8 +120,9 @@ describe('parseWireMessage', () => {
     expect(parsed).not.toBeNull();
     expect(parsed!.from).toBe('tmesh-hq');
     expect(parsed!.to).toBe('nano-research');
-    expect(parsed!.type).toBe('message');
-    expect(parsed!.content).toContain('Hello from the mesh');
+    expect(parsed!.type).toBe('command');
+    expect(parsed!.content).toBe('Hello from the mesh');
+    expect(parsed!.id).toBe('01ABC123DEF456GHJ789KLMNPQ');
   });
 
   test('returns null for non-tmesh text', () => {
@@ -87,18 +130,17 @@ describe('parseWireMessage', () => {
     expect(parseWireMessage('')).toBeNull();
   });
 
-  test('parses wire with command type', () => {
+  test('parses channel field', () => {
     const wire = formatWireMessage({
       id: '01ABC123DEF456GHJ789KLMNPQ',
       from: 'alice',
       to: 'bob',
-      type: 'command',
-      channel: 'ops',
-      content: 'deploy now',
+      type: 'event',
+      channel: 'deploys',
+      content: 'shipped',
     });
 
     const parsed = parseWireMessage(wire);
-    expect(parsed).not.toBeNull();
-    expect(parsed!.type).toBe('command');
+    expect(parsed!.channel).toBe('deploys');
   });
 });
