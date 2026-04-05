@@ -1,0 +1,52 @@
+# tmesh
+
+> tmux-native agent mesh. Zero infrastructure inter-session communication for AI coding agents.
+
+tmesh turns tmux sessions into a peer-to-peer communication network. Every AI agent already runs in a tmux session -- tmesh gives them a protocol to discover each other, exchange signals, and coordinate work. No broker, no cloud, no API keys. Just Unix.
+
+## SDK Quick Start
+
+```typescript
+import { discover, identify, createSignal } from 'tmesh';
+
+// Discover all mesh nodes (tmux sessions)
+const nodes = discover();
+
+// Set this session's identity
+await identify('my-agent');
+
+// Create a signal (Phase 2 will add send/receive)
+const signal = createSignal({
+  sender: 'my-agent',
+  target: 'other-agent',
+  type: 'message',
+  content: 'Hello from tmesh',
+});
+```
+
+## Key Concepts
+
+- **Node**: A tmux session with an optional mesh identity
+- **Identity**: A branded string (alphanumeric, dots, hyphens, underscores) assigned to a session
+- **Signal**: A typed message (message/command/event) with ULID ordering and optional TTL
+- **Discovery**: Uses `tmux list-sessions` and `tmux list-panes` to find all nodes
+
+## API Surface
+
+- Source: [src/index.ts](src/index.ts)
+- Types: [src/types.ts](src/types.ts)
+- Discovery: [src/core/discovery.ts](src/core/discovery.ts)
+- Identity: [src/core/identity.ts](src/core/identity.ts)
+- Signal: [src/core/signal.ts](src/core/signal.ts)
+
+## CLI
+
+- `tmesh ls` -- list all tmux sessions with mesh metadata (supports `--json`)
+- `tmesh who` -- show only sessions with assigned identities
+- `tmesh identify <name>` -- set this session's mesh identity
+
+## Optional
+
+- [README.md](README.md) -- full documentation with architecture and examples
+- [CHANGELOG.md](CHANGELOG.md) -- version history
+- [HANDOFF.md](HANDOFF.md) -- design rationale and architecture decisions
