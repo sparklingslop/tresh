@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jankowtf/tmesh"
+    "url": "https://github.com/sparklingslop/tmesh"
   },
   "engines": {
     "bun": ">=1.0.0"

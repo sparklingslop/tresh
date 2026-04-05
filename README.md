@@ -5,11 +5,11 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/jankowtf/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.1-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.1-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/jankowtf/tmesh/actions"><img src="https://img.shields.io/badge/tests-139%2B%20passing-brightgreen" alt="tests"></a>
-  <a href="https://github.com/jankowtf/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-139%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
 ---
@@ -76,6 +76,70 @@ We don't need a $200M broker. We have tmux.
 - **No daemon** -- The library provides functions. Your agent's event loop does the work.
 - **Convention over configuration** -- Session naming and tmux environment variables handle identity. No registration step.
 - **Signals, not RPC** -- Fire-and-forget signals with optional acknowledgment. Agents are autonomous -- they decide what to do with signals.
+
+## Getting Started: Ghostty + tmux + Claude Code
+
+tmesh is designed to be harness-agnostic -- any process in a tmux session can participate. That said, we've tested and verified it with **Claude Code running in Ghostty on macOS**. Here's the recommended setup.
+
+### Prerequisites
+
+- [Ghostty](https://ghostty.org) -- a fast, native terminal emulator (or any terminal that supports tmux)
+- [tmux](https://github.com/tmux/tmux) -- terminal multiplexer
+- [Bun](https://bun.sh) -- JavaScript runtime
+
+### Install tmux (if needed)
+
+```bash
+# macOS
+brew install tmux
+
+# Linux
+sudo apt install tmux   # Debian/Ubuntu
+sudo pacman -S tmux     # Arch
+```
+
+### Set up tmux sessions for your agents
+
+```bash
+# Create named sessions for each agent
+tmux new-session -d -s agent-alpha
+tmux new-session -d -s agent-beta
+
+# Launch Claude Code in each session
+tmux send-keys -t agent-alpha 'claude' Enter
+tmux send-keys -t agent-beta 'claude' Enter
+```
+
+### Give your agents mesh identities
+
+From inside each agent's tmux session (or via CLI):
+
+```bash
+# In agent-alpha's session
+tmesh identify alpha
+
+# In agent-beta's session
+tmesh identify beta
+
+# Now see who's on the mesh
+tmesh who
+```
+
+### Ghostty tip
+
+Ghostty's split panes are separate from tmux panes. For tmesh, use **tmux panes** (not Ghostty splits) so that `tmesh ls` can discover them. Launch Ghostty, start tmux inside it, and create your agent sessions from there.
+
+### Tested With
+
+| Component | Version | Status |
+|-----------|---------|--------|
+| Claude Code | 2.1.92 | Verified -- live tested with 16 concurrent sessions |
+| Ghostty | Latest | Verified -- primary development terminal |
+| macOS | Sequoia 26.x | Verified |
+| tmux | 3.x | Verified |
+| Bun | 1.3.x | Verified |
+
+tmesh is harness-agnostic by design. It should work with any terminal-based AI agent (Cursor, Aider, Windsurf, custom agents) running in tmux. We've only verified Claude Code so far -- **PRs testing other harnesses are very welcome.**
 
 ## Architecture
 
@@ -310,7 +374,7 @@ tmesh is not a replacement for cloud-based mesh systems. It's a local-first, zer
 
 ```bash
 # Clone
-git clone https://github.com/jankowtf/tmesh.git
+git clone https://github.com/sparklingslop/tmesh.git
 cd tmesh
 
 # Install
@@ -327,4 +391,4 @@ Tests must pass before every commit. The codebase uses TypeScript strict mode wi
 
 ## License
 
-MIT -- [Sparkling Slop](https://github.com/jankowtf/tmesh)
+MIT -- [Sparkling Slop](https://github.com/sparklingslop/tmesh)

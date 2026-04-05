@@ -24,4 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
-[0.0.1]: https://github.com/jankowtf/tmesh/releases/tag/v0.0.1
+[0.0.1]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.1
