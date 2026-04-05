@@ -2,12 +2,16 @@
  * tmesh send -- send a signal to a specific node.
  *
  * Usage: tmesh send <target> "message" [--type message|command|event] [--channel <name>] [--ttl <seconds>]
+ *
+ * Delivers a signal file to the target's inbox AND sends a tmux
+ * display-message notification to the target session.
  */
 
 import { registerCommand } from '../registry';
 import { resolveEffectiveIdentity } from '../../core/identity';
 import { createSignal } from '../../core/signal';
 import { deliverSignal } from '../../core/transport';
+import { notifyNode } from '../../core/notify';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
 
@@ -21,21 +25,20 @@ registerCommand('send', async (args, flags) => {
   const content = args[1]!;
   const home = resolveHome();
 
-  // Read sender identity
   const identityResult = await resolveEffectiveIdentity(home);
   if (!identityResult.ok) {
     process.stderr.write(`Error: ${identityResult.error.message}\nRun "tmesh identify <name>" first.\n`);
     return 1;
   }
 
+  const sender = identityResult.value;
   const signalType = (flags.get('type') as SignalType) ?? 'message';
   const channel = flags.get('channel') as string | undefined;
   const ttlRaw = flags.get('ttl');
   const ttl = typeof ttlRaw === 'string' ? parseInt(ttlRaw, 10) : undefined;
 
-  // Create signal
   const signalResult = createSignal({
-    sender: identityResult.value,
+    sender,
     target,
     type: signalType,
     content,
@@ -48,9 +51,8 @@ registerCommand('send', async (args, flags) => {
     return 1;
   }
 
-  // Target home: ~/.tmesh/nodes/<identity>/
+  // Deliver to filesystem
   const targetHome = `${home}/nodes/${target}`;
-
   const deliverResult = await deliverSignal(signalResult.value, targetHome, {
     senderHome: home,
   });
@@ -59,6 +61,9 @@ registerCommand('send', async (args, flags) => {
     process.stderr.write(`Error: ${deliverResult.error.message}\n`);
     return 1;
   }
+
+  // Notify target session via tmux display-message (best-effort)
+  await notifyNode(target, sender, signalType, content);
 
   process.stdout.write(`Sent ${signalResult.value.id} to ${target}\n`);
   return 0;
