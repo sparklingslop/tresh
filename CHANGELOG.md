@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.7] - 2026-04-05
+
+### Changed
+
+- **CLI consolidated from 22 commands to 6**: `setup`, `join`, `send`, `log`, `who`, `peek`. All old commands remain callable but hidden from `tmesh help`.
+
+### Added
+
+- **CLI: setup**: `tmesh setup` -- one-time global install. Creates `~/.tmesh/`, installs tmux hooks. Supports `--status` and `--uninstall`.
+- **CLI: join**: `tmesh join <identity>` -- replaces `identify` + `init`. Single-arg sets identity for current session. Two-arg (`tmesh join <session> <identity>`) hot-bootstraps a remote session.
+- **CLI: send** (consolidated): `tmesh send <target> "msg"` now does the full pipeline (signal + inject + notify + log). `tmesh send * "msg"` for broadcast. `--ping` flag for pings. `--channel` for cast. @-mentions auto-route to mentioned nodes.
+- **CLI: log** (consolidated): `tmesh log --follow` / `-f` for live tail (replaces `watch`). `--inbox` lists pending signals. `--read <id>` and `--ack <id>` for signal management. `--peer <name>` filters by peer.
+- **CLI: who** (consolidated): `--all` shows all tmux sessions (replaces `ls`). `--topology` shows inbox counts. `--viz` for gum dashboard. `--json` for machine output.
+- **Short flag `-f`**: alias for `--follow` in `tmesh log`.
+
+### Architecture
+
+- 403+ tests, 960+ assertions
+- 6 essential CLI commands (22 hidden for backwards compatibility)
+- Zero production dependencies maintained
+
 ## [0.0.6] - 2026-04-05
 
 ### Added
@@ -140,6 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.7]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.7
 [0.0.6]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.6
 [0.0.5]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.5
 [0.0.4]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.4

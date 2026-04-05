@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.6-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.7-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-389%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-403%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -48,29 +48,32 @@ for await (const signal of mesh.watch()) {
 }
 ```
 
-### CLI
+### CLI (6 essential commands)
 
 ```bash
-# Claim an identity on the mesh
-TMESH_IDENTITY=my-agent tmesh identify my-agent
+# One-time setup (creates ~/.tmesh, installs tmux hooks)
+tmesh setup
 
-# See what's running
-tmesh ls
+# Join the mesh with an identity
+tmesh join my-agent
 
-# Send a message (delivers file + tmux status bar notification)
-TMESH_IDENTITY=my-agent tmesh send nano-cortex "Deploy complete"
+# Send a message (file delivery + tmux injection + notification)
+tmesh send nano-cortex "Deploy complete"
 
-# Watch incoming signals in real-time
-TMESH_IDENTITY=my-agent tmesh watch
+# Broadcast to all nodes
+tmesh send * "Shutting down for maintenance"
 
-# Or start a watch pane in any tmux session
-tmux split-window -v -l 6 "TMESH_IDENTITY=my-agent tmesh watch"
+# View conversation history
+tmesh log
 
-# See the full topology
-tmesh topology
+# Live tail (like tail -f)
+tmesh log --follow
 
-# Visual dashboard (requires gum)
-tmesh viz
+# See who's on the mesh
+tmesh who
+
+# Capture another session's screen
+tmesh peek agent-beta --lines 20
 ```
 
 ## Why tmux?
@@ -130,10 +133,13 @@ From inside each agent's tmux session (or via CLI):
 
 ```bash
 # In agent-alpha's session
-tmesh identify alpha
+tmesh join alpha
 
 # In agent-beta's session
-tmesh identify beta
+tmesh join beta
+
+# Or bootstrap from outside (hot-init a remote session)
+tmesh join agent-alpha alpha
 
 # Now see who's on the mesh
 tmesh who
@@ -221,51 +227,96 @@ interface TmeshNode {
 
 ## CLI Reference
 
-### `tmesh ls`
+tmesh has 6 essential commands. Each does one thing well with flags for variations.
 
-List all tmux sessions with mesh metadata.
+### `tmesh setup`
 
-```
-$ tmesh ls
-  SESSION                      PID    CMD          STARTED              IDENTITY
-  kai-claude-code-1            48291  claude       2026-04-05 02:15     nano-cortex
-  kai-claude-code-2            48445  claude       2026-04-05 02:17     nano-mesh
-  dev-server                   47102  node         2026-04-05 01:30     --
-```
-
-Pass `--json` for machine-readable output.
-
-### `tmesh identify <name>`
-
-Set the mesh identity for the current session. Writes to `~/.tmesh/identity` with an atomic file write and sets the `TMESH_IDENTITY` tmux environment variable.
+One-time global install. Creates `~/.tmesh/` and installs tmux hooks for auto-registration.
 
 ```
-$ tmesh identify nano-cortex
-  identity set: nano-cortex
+$ tmesh setup
+Home: /Users/you/.tmesh
+Hooks: installed (binary: /path/to/tmesh)
+
+Setup complete. New tmux sessions will auto-register on the mesh.
+Next: tmesh join <identity> to join the mesh in this session.
 ```
+
+Flags: `--status` (show current state), `--uninstall` (remove hooks)
+
+### `tmesh join <identity>`
+
+Join the mesh. Sets this session's identity, creates inbox, writes PROTOCOL.md.
+
+```
+$ tmesh join nano-cortex
+Joined mesh as: nano-cortex
+```
+
+Two-arg form bootstraps a remote session: `tmesh join <session> <identity>`
+
+### `tmesh send <target> "message"`
+
+Unified messaging. Full pipeline: signal creation, filesystem delivery, wire injection into tmux session, notification, conversation log.
+
+```
+$ tmesh send nano-cortex "Deploy complete"
+[tmesh 2026-04-05 14:30:00] --> nano-cortex: Deploy complete  (delivered + injected)
+
+$ tmesh send * "Shutting down"
+[tmesh 2026-04-05 14:31:00] --> * (3 nodes): Shutting down  (delivered)
+
+$ tmesh send nano-cortex --ping
+PING nano-cortex: signal=01ABC123... time=1ms
+```
+
+Flags: `--type message|command|event`, `--channel <name>`, `--ttl <seconds>`, `--ping`
+
+### `tmesh log`
+
+Conversation history, inbox, and live tail. The definitive view of all mesh communication.
+
+```
+$ tmesh log
+[tmesh 2026-04-05 14:30:00] --> nano-cortex: Deploy complete  (sent)
+[tmesh 2026-04-05 14:30:05] <-- nano-cortex [message]: Acknowledged
+
+$ tmesh log --follow
+--- watching ---
+[tmesh 2026-04-05 14:32:00] <-- nano-mesh [event]: New node joined
+
+$ tmesh log --inbox
+[tmesh 2026-04-05 14:30:15] <-- nano-cortex [message]: Deploy complete.
+
+$ tmesh log --read 01ABC123
+$ tmesh log --ack 01ABC123
+```
+
+Flags: `--follow`/`-f` (live tail), `--tail <n>`, `--peer <name>`, `--inbox`, `--read <id>`, `--ack <id>`
 
 ### `tmesh who`
 
-Show only sessions that have assigned mesh identities.
+Mesh status. Shows identified nodes, all sessions, topology, or visual dashboard.
 
 ```
 $ tmesh who
-  nano-cortex    kai-claude-code-1    claude    active
-  nano-mesh      kai-claude-code-2    claude    active
+SESSION                    IDENTITY      PID    COMMAND  STATUS   STARTED
+kai-claude-code-1          nano-cortex   48291  claude   active   2026-04-05 02:15
+kai-claude-code-2          nano-mesh     48445  claude   active   2026-04-05 02:17
+
+$ tmesh who --topology
+Topology:
+
+  * nano-cortex (this node) [2 signal(s) in inbox]
+
+  Known peers:
+    - nano-mesh [0 signal(s) pending]
+    - alpha [1 signal(s) pending]
+
+  Total: 3 node(s)
 ```
 
-### `tmesh inject <session> "text"`
-
-Inject text into a tmux session via `send-keys` (Layer 1 direct injection).
-
-```
-$ tmesh inject agent-beta "Deploy complete"
-Injected 15 chars into agent-beta
-```
-
-Session targets are validated against a strict whitelist pattern. Messages are escaped to prevent command injection. Uses `execFileSync` (no shell) for execution.
-
-Flags: `--no-enter` (don't append Enter after the message)
+Flags: `--all` (include unidentified sessions), `--topology`, `--viz` (gum dashboard), `--json`
 
 ### `tmesh peek <session>`
 
@@ -278,77 +329,11 @@ $ tmesh peek agent-beta --lines 20
 
 Flags: `--lines <n>` (capture last N lines)
 
-### `tmesh send <target> "message"`
+### Hidden commands
 
-Send a signal to a specific node.
+The following commands are still callable for backwards compatibility and internal use but are not shown in `tmesh help`:
 
-```
-$ tmesh send nano-cortex "Deploy complete"
-Sent 01ABC123... to nano-cortex
-```
-
-Flags: `--type message|command|event`, `--channel <name>`, `--ttl <seconds>`
-
-### `tmesh broadcast "message"`
-
-Send a signal to all known nodes.
-
-```
-$ tmesh broadcast "Shutting down for maintenance"
-Broadcast 01ABC123... to 3 node(s)
-```
-
-### `tmesh cast <channel> "message"`
-
-Send to a specific channel/topic across all nodes.
-
-```
-$ tmesh cast deploys "v1.0 released"
-Cast 01ABC123... to 3 node(s) on channel "deploys"
-```
-
-### `tmesh inbox`
-
-List pending signals in the inbox.
-
-```
-$ tmesh inbox
-01ABC123  14:30:15  nano-cortex [message]  Deploy complete. All tests pass.
-01DEF456  14:31:02  nano-mesh [event]      New node joined: alpha
-```
-
-### `tmesh read <signal-id>`
-
-Read a specific signal by ID.
-
-### `tmesh ack <signal-id>`
-
-Acknowledge (delete) a signal from the inbox.
-
-### `tmesh watch`
-
-Tail incoming signals in real-time (like `tail -f`). Supports `--channel` filter.
-
-### `tmesh ping <target>`
-
-Ping a node (delivery check).
-
-### `tmesh topology`
-
-Show all nodes and their connection state.
-
-```
-$ tmesh topology
-Topology:
-
-  * nano-cortex (this node) [2 signal(s) in inbox]
-
-  Known peers:
-    - nano-mesh [0 signal(s) pending]
-    - alpha [1 signal(s) pending]
-
-  Total: 3 node(s)
-```
+`ls`, `identify`, `init`, `message`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`, `inject`, `viz`, `@`, `hooks`, `register`, `deregister`
 
 ## SDK / Library API
 
@@ -432,24 +417,28 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.0.6
+## What's in 0.0.7
 
-All 5 implementation phases complete. Real-time bidirectional communication verified between live Claude Code agents.
+All implementation phases complete. CLI consolidated from 22 commands to 6 essential commands.
 
-**Shipped:**
-- **Conversation log**: append-only per-node log with both `-->` and `<--` directions. `tmesh log` shows history, `tmesh watch` tails it live. The definitive conversation view.
-- **tmesh message**: unified send (file delivery + tmux injection + notification)
-- **tmesh init**: hot-bootstrap any tmux session onto the mesh from outside
-- **tmesh @**: @-mention routing (`tmesh @ "Hey @alice and @bob, deploy ready"`)
-- **Wire format**: `[tmesh YYYY-MM-DD HH:MM:SS] <-- sender: content` -- clean, timestamped, no escaping issues
-- **PROTOCOL.md**: auto-generated protocol doc teaching agents how to reply via tmesh
-- **QA acceptance suite**: 31 system-level tests against real tmux sessions (`just qa`)
-- **justfile**: task runner (`just test`, `just qa`, `just test-all`, `just viz`)
-- 22 CLI commands, `createTmesh()` factory, standalone binary
-- Per-session identity, tmux notifications, auto-registration hooks
+**0.0.7 -- Command Consolidation:**
+- **6 essential commands**: `setup`, `join`, `send`, `log`, `who`, `peek`
+- **`tmesh setup`**: one-time global install (home dir + tmux hooks)
+- **`tmesh join`**: replaces `identify` + `init` with single join flow
+- **`tmesh send`**: unified messaging -- direct, broadcast (`*`), ping (`--ping`), channels, @-mentions
+- **`tmesh log`**: unified view -- conversation history, live tail (`--follow`), inbox (`--inbox`), read/ack signals
+- **`tmesh who`**: unified status -- nodes, all sessions (`--all`), topology (`--topology`), viz (`--viz`)
+- All 22 old commands still callable (hidden from help) for backwards compatibility
+- 403+ tests, 960+ assertions, zero production dependencies
+
+**0.0.6 -- Conversation Log + Wire Format:**
+- Conversation log: append-only per-node log with `-->` and `<--` directions
+- Wire format: `[tmesh YYYY-MM-DD HH:MM:SS] <-- sender: content`
+- PROTOCOL.md: auto-generated protocol doc for agents
+- QA acceptance suite: 31 system-level tests against real tmux sessions
+- `createTmesh()` factory, per-session identity, tmux notifications
 - Direct injection + screen capture with hardened shell escaping
 - File-based transport with atomic writes, ULID ordering, TTL expiry
-- 389+ tests, 920+ assertions, zero production dependencies
 
 ## Comparison with Alternatives
 
