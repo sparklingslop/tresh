@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" width="200" alt="tmesh">
+  <img src="assets/logo.svg" width="480" alt="tmesh">
 </p>
 
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
