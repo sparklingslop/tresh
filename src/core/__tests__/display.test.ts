@@ -6,7 +6,7 @@ import { describe, test, expect } from 'bun:test';
 import { formatOutbound, formatInbound } from '../display';
 
 describe('formatOutbound', () => {
-  test('uses [tmesh] prefix with timestamp', () => {
+  test('uses [tmesh] prefix with full ISO timestamp', () => {
     const out = formatOutbound({
       target: 'nano-research', content: 'hello',
       timestamp: '2026-04-05T14:19:12.000Z', status: 'delivered',
@@ -41,7 +41,7 @@ describe('formatOutbound', () => {
 });
 
 describe('formatInbound', () => {
-  test('uses [tmesh] prefix with timestamp', () => {
+  test('uses [tmesh] prefix with full ISO timestamp', () => {
     const out = formatInbound({
       sender: 'tmesh-hq', content: 'hello',
       timestamp: '2026-04-05T14:19:12.000Z', type: 'message',

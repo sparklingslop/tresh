@@ -1,12 +1,11 @@
 /**
  * Message display formatting for tmesh.
  *
- * ONE format everywhere:
- *   [tmesh YYYY-MM-DD HH:MM:SS] --> nano-research: Status report   (sent)
- *   [tmesh YYYY-MM-DD HH:MM:SS] <-- tmesh-hq: Status report       (received)
- *   [tmesh YYYY-MM-DD HH:MM:SS] tmesh-hq: Status report           (injected into session)
+ * Both sides of a conversation see formatted messages:
+ *   Outbound: [tmesh 2026-04-05 14:27:08] --> nano-research: message  (delivered)
+ *   Inbound:  [tmesh 2026-04-05 14:27:08] <-- tmesh-hq [command]: message
  *
- * Same prefix, same timestamp, same structure. Only the arrow differs.
+ * Same [tmesh timestamp] prefix everywhere. Arrows show direction.
  *
  * Zero dependencies -- pure TypeScript.
  */
@@ -30,20 +29,16 @@ export interface InboundDisplay {
 }
 
 // ---------------------------------------------------------------------------
-// Shared
+// Formatting
 // ---------------------------------------------------------------------------
 
 function formatTimestamp(iso: string): string {
   return `${iso.slice(0, 10)} ${iso.slice(11, 19)}`;
 }
 
-// ---------------------------------------------------------------------------
-// Formatting
-// ---------------------------------------------------------------------------
-
 /**
- * Sender side (after sending):
- *   [tmesh 2026-04-05 14:22:22] --> nano-research: Status report  (delivered + injected)
+ * Outbound (what you see when YOU send):
+ *   [tmesh 2026-04-05 14:27:08] --> nano-research: message  (delivered + injected)
  */
 export function formatOutbound(msg: OutboundDisplay): string {
   const ts = formatTimestamp(msg.timestamp);
@@ -51,8 +46,8 @@ export function formatOutbound(msg: OutboundDisplay): string {
 }
 
 /**
- * Receiver side (inbox, watch):
- *   [tmesh 2026-04-05 14:22:22] <-- tmesh-hq [command]: Status report
+ * Inbound (what you see when you RECEIVE):
+ *   [tmesh 2026-04-05 14:27:08] <-- tmesh-hq [command]: message
  */
 export function formatInbound(msg: InboundDisplay): string {
   const ts = formatTimestamp(msg.timestamp);

@@ -14,6 +14,7 @@ import { deliverSignal } from '../../core/transport';
 import { notifyNode } from '../../core/notify';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
+import { formatOutbound } from '../../core/display';
 
 registerCommand('send', async (args, flags) => {
   if (args.length < 2) {
@@ -65,6 +66,11 @@ registerCommand('send', async (args, flags) => {
   // Notify target session via tmux display-message (best-effort)
   await notifyNode(target, sender, signalType, content);
 
-  process.stdout.write(`Sent ${signalResult.value.id} to ${target}\n`);
+  process.stdout.write(formatOutbound({
+    target,
+    content,
+    timestamp: signalResult.value.timestamp,
+    status: 'delivered',
+  }) + '\n');
   return 0;
 });
