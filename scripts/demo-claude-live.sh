@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Spins up two Claude Code agents (alice & bob) in separate project dirs.
-# Each agent is on the tmesh mesh and can self-coordinate.
+# Spins up two Claude Code agents (alice & bob) that communicate via injection.
+# Handles the trust prompt and waits for full startup.
 
 set -euo pipefail
 
@@ -14,73 +14,49 @@ rm -rf "$DEMO_HOME"
 mkdir -p "$DEMO_HOME/nodes/alice/inbox"
 mkdir -p "$DEMO_HOME/nodes/bob/inbox"
 
-# Create tmesh wrapper with baked-in repo path
+# Create tmesh wrapper
 cat > "$DEMO_HOME/tmesh" << WRAPPER
 #!/usr/bin/env bash
 exec bun run $REPO_DIR/src/cli/index.ts "\$@"
 WRAPPER
 chmod +x "$DEMO_HOME/tmesh"
 
-# Ensure project dirs exist with minimal CLAUDE.md
-mkdir -p "$ALICE_DIR" "$BOB_DIR"
+# Kill leftover sessions
+tmux kill-session -t alice 2>/dev/null || true
+tmux kill-session -t bob 2>/dev/null || true
 
-cat > "$ALICE_DIR/CLAUDE.md" << 'MD'
-# Alice's workspace
-
-You are agent "alice" on a tmesh mesh. tmesh is available in your PATH.
-Use `tmesh send <target> '<message>'` to send messages.
-Use `tmesh log --inbox` to check incoming messages.
-Use `tmesh log` to see conversation history.
-Use `tmesh log --follow` to watch for new messages in real-time.
-MD
-
-cat > "$BOB_DIR/CLAUDE.md" << 'MD'
-# Bob's workspace
-
-You are agent "bob" on a tmesh mesh. tmesh is available in your PATH.
-Use `tmesh send <target> '<message>'` to send messages.
-Use `tmesh log --inbox` to check incoming messages.
-Use `tmesh log` to see conversation history.
-Use `tmesh log --follow` to watch for new messages in real-time.
-MD
-
-# Kill leftover
-tmux kill-session -t cc-demo 2>/dev/null || true
-
-# Create session -- alice in left pane
-tmux new-session -d -s cc-demo -x 160 -y 40 "bash --norc --noprofile"
+# --- Alice session ---
+tmux new-session -d -s alice -x 80 -y 40 "bash --norc --noprofile"
 sleep 0.3
-
-# Alice: set env, join mesh, launch claude
-tmux send-keys -t cc-demo.0 "cd $ALICE_DIR" Enter
-sleep 0.1
-tmux send-keys -t cc-demo.0 "export PATH=$DEMO_HOME:\$PATH TMESH_HOME=$DEMO_HOME TMESH_IDENTITY=alice" Enter
+tmux send-keys -t alice "cd $ALICE_DIR" Enter
+tmux send-keys -t alice "export PATH=$DEMO_HOME:\$PATH TMESH_HOME=$DEMO_HOME TMESH_IDENTITY=alice" Enter
 sleep 0.2
-tmux send-keys -t cc-demo.0 "tmesh join alice --no-watch 2>/dev/null" Enter
+tmux send-keys -t alice "tmesh join alice --no-watch 2>/dev/null" Enter
 sleep 1
-tmux send-keys -t cc-demo.0 "clear" Enter
+tmux send-keys -t alice "clear" Enter
 sleep 0.2
-tmux clear-history -t cc-demo.0
-tmux send-keys -t cc-demo.0 "claude" Enter
+tmux clear-history -t alice
+tmux send-keys -t alice "claude" Enter
 
-# Split for bob
-tmux split-window -h -t cc-demo "bash --norc --noprofile"
+# --- Bob session ---
+tmux new-session -d -s bob -x 80 -y 40 "bash --norc --noprofile"
 sleep 0.3
-
-# Bob: set env, join mesh, launch claude
-tmux send-keys -t cc-demo.1 "cd $BOB_DIR" Enter
-sleep 0.1
-tmux send-keys -t cc-demo.1 "export PATH=$DEMO_HOME:\$PATH TMESH_HOME=$DEMO_HOME TMESH_IDENTITY=bob" Enter
+tmux send-keys -t bob "cd $BOB_DIR" Enter
+tmux send-keys -t bob "export PATH=$DEMO_HOME:\$PATH TMESH_HOME=$DEMO_HOME TMESH_IDENTITY=bob" Enter
 sleep 0.2
-tmux send-keys -t cc-demo.1 "tmesh join bob --no-watch 2>/dev/null" Enter
+tmux send-keys -t bob "tmesh join bob --no-watch 2>/dev/null" Enter
 sleep 1
-tmux send-keys -t cc-demo.1 "clear" Enter
+tmux send-keys -t bob "clear" Enter
 sleep 0.2
-tmux clear-history -t cc-demo.1
-tmux send-keys -t cc-demo.1 "claude" Enter
+tmux clear-history -t bob
+tmux send-keys -t bob "claude" Enter
 
-# Focus left pane (alice)
-tmux select-pane -t cc-demo.0
+# Wait for trust prompt to appear, then accept it for both
+sleep 8
+tmux send-keys -t alice Enter
+tmux send-keys -t bob Enter
 
-echo "Alice and Bob launching on the mesh."
-echo "Attach: tmux attach -t cc-demo"
+echo "Alice and Bob launching. Trust prompts accepted."
+echo "Wait ~30s for full startup, then:"
+echo "  tmux attach -t alice"
+echo "  tmux attach -t bob"
