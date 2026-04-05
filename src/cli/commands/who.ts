@@ -98,19 +98,25 @@ async function showTopology(home: string): Promise<number> {
   process.stdout.write(`Topology:\n\n`);
   process.stdout.write(`  * ${selfIdentity} (this node) [${inboxCount} signal(s) in inbox]\n`);
 
-  if (nodes.length === 0) {
+  const peers = nodes.filter((n) => n !== selfIdentity).sort();
+
+  if (peers.length === 0) {
     process.stdout.write(`\n  No known peers.\n`);
   } else {
+    const peerData = await Promise.all(
+      peers.map(async (node) => {
+        const peerInbox = await listInbox(`${home}/nodes/${node}`);
+        return { node, count: peerInbox.ok ? peerInbox.value.length : 0 };
+      }),
+    );
+
     process.stdout.write(`\n  Known peers:\n`);
-    for (const node of nodes.sort()) {
-      if (node === selfIdentity) continue;
-      const peerInbox = await listInbox(`${home}/nodes/${node}`);
-      const peerCount = peerInbox.ok ? peerInbox.value.length : 0;
-      process.stdout.write(`    - ${node} [${peerCount} signal(s) pending]\n`);
+    for (const { node, count } of peerData) {
+      process.stdout.write(`    - ${node} [${count} signal(s) pending]\n`);
     }
   }
 
-  const peerCount = nodes.filter((n) => n !== selfIdentity).length;
+  const peerCount = peers.length;
   process.stdout.write(`\n  Total: ${peerCount + 1} node(s)\n`);
   return 0;
 }

@@ -17,10 +17,7 @@ import { registerCommand } from '../registry';
 import { ensureHome } from '../../core/identity';
 import { installHooks, uninstallHooks } from '../../core/hooks';
 import { resolveHome } from '../../types';
-
-function findTmeshBin(): string {
-  return process.argv[1] ?? 'tmesh';
-}
+import { resolveTmeshBin } from '../util';
 
 registerCommand('setup', async (_args, flags) => {
   // --status: show current setup state
@@ -74,7 +71,7 @@ registerCommand('setup', async (_args, flags) => {
   process.stdout.write(`Home: ${home}\n`);
 
   // 2. Install tmux hooks
-  const bin = findTmeshBin();
+  const bin = resolveTmeshBin();
   const hooksResult = installHooks(bin);
   if (!hooksResult.ok) {
     process.stderr.write(`Warning: hooks not installed (${hooksResult.error.message})\n`);

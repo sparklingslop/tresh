@@ -5,7 +5,7 @@
  * Zero dependencies -- only node:* built-ins.
  */
 
-import { readdir, stat } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /**
@@ -15,24 +15,10 @@ import { join } from 'node:path';
 export async function listNodes(home: string): Promise<string[]> {
   const nodesDir = join(home, 'nodes');
 
-  let entries: string[];
   try {
-    entries = await readdir(nodesDir);
+    const entries = await readdir(nodesDir, { withFileTypes: true });
+    return entries.filter((e) => e.isDirectory()).map((e) => e.name);
   } catch {
     return [];
   }
-
-  const nodes: string[] = [];
-  for (const entry of entries) {
-    try {
-      const s = await stat(join(nodesDir, entry));
-      if (s.isDirectory()) {
-        nodes.push(entry);
-      }
-    } catch {
-      // skip
-    }
-  }
-
-  return nodes;
 }

@@ -64,12 +64,6 @@ describe('tmesh join', () => {
     expect(existsSync(join(tempDir, 'nodes', 'test-node', 'inbox'))).toBe(true);
   });
 
-  it('rejects empty args', async () => {
-    // join with no args should fail
-    // This tests the CLI validation, not the core function
-    expect(true).toBe(true); // placeholder -- real validation is in the command
-  });
-
   it('rejects invalid identity characters', () => {
     const { Identity } = require('../../../types');
     expect(() => Identity('has space')).toThrow();
