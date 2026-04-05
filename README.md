@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.5-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.6-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-309%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-389%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -38,7 +38,7 @@ await mesh.send('nano-cortex', {
 await mesh.broadcast({
   type: 'event',
   channel: 'deploys',
-  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.5' }),
+  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.6' }),
 });
 
 // Watch inbox for incoming signals
@@ -432,26 +432,24 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.0.5
+## What's in 0.0.6
 
-All 5 implementation phases complete. Real-time bidirectional communication verified.
+All 5 implementation phases complete. Real-time bidirectional communication verified between live Claude Code agents.
 
 **Shipped:**
-- 15 CLI commands: `ls`, `who`, `identify`, `send`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`, `inject`, `peek`, `viz`
-- `createTmesh()` factory -- the primary library API
-- Per-session identity via `TMESH_IDENTITY` env var (tmux set-environment)
-- Shared-home model: all nodes share `~/.tmesh/`, per-identity inboxes at `~/.tmesh/nodes/{identity}/inbox/`
-- Real-time signal delivery: file write + tmux `display-message` notification
-- `tmesh watch` -- live signal stream via `fs.watch` (run in a tmux split pane)
-- `tmesh viz` -- gum-powered visual mesh dashboard
-- Direct injection (`inject`) and screen capture (`peek`) with hardened shell escaping
-- File-based signal transport with atomic writes, TTL expiry, ULID ordering
-- Security: `execFileSync` (no shell), input validation, session target whitelisting
-- Branded types, `Result<T, E>` monad, zero production dependencies
-- `tmesh @` -- @-mention routing: `tmesh @ "Hey @alice and @bob, deploy ready"` auto-delivers to all mentioned nodes
-- `tmesh hooks install` -- tmux auto-registration: new sessions auto-join the mesh
-- `tmesh register`/`deregister` -- called by tmux hooks, creates/removes node directories
-- 309+ tests, 768+ assertions
+- **Conversation log**: append-only per-node log with both `-->` and `<--` directions. `tmesh log` shows history, `tmesh watch` tails it live. The definitive conversation view.
+- **tmesh message**: unified send (file delivery + tmux injection + notification)
+- **tmesh init**: hot-bootstrap any tmux session onto the mesh from outside
+- **tmesh @**: @-mention routing (`tmesh @ "Hey @alice and @bob, deploy ready"`)
+- **Wire format**: `[tmesh YYYY-MM-DD HH:MM:SS] <-- sender: content` -- clean, timestamped, no escaping issues
+- **PROTOCOL.md**: auto-generated protocol doc teaching agents how to reply via tmesh
+- **QA acceptance suite**: 31 system-level tests against real tmux sessions (`just qa`)
+- **justfile**: task runner (`just test`, `just qa`, `just test-all`, `just viz`)
+- 22 CLI commands, `createTmesh()` factory, standalone binary
+- Per-session identity, tmux notifications, auto-registration hooks
+- Direct injection + screen capture with hardened shell escaping
+- File-based transport with atomic writes, ULID ordering, TTL expiry
+- 389+ tests, 920+ assertions, zero production dependencies
 
 ## Comparison with Alternatives
 
