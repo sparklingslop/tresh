@@ -22,12 +22,12 @@ tmesh is a zero-infrastructure communication layer for AI coding agents. No brok
 
 Works with Claude Code, Cursor, Aider, Windsurf, or any process in a tmux pane.
 
-### Claude Code + tmesh in 30 seconds
+### Two Claude Code agents self-coordinating
 
-Set up two Claude Code agents on the mesh, exchange signals, then launch `claude`:
+Alice and Bob are separate Claude Code sessions. One prompt each -- then they autonomously send, receive, and respond via tmesh:
 
 <p align="center">
-  <img src="assets/demo-claude.gif" width="720" alt="tmesh with Claude Code -- setup, join, and exchange signals">
+  <img src="assets/demo-claude.gif" width="720" alt="Two Claude Code agents (alice and bob) autonomously coordinating via tmesh">
 </p>
 
 ## Install
