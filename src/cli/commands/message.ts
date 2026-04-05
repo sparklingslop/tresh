@@ -82,6 +82,7 @@ registerCommand('message', async (args, flags) => {
     type: signalType,
     channel,
     content,
+    timestamp: signal.timestamp,
   });
 
   // 4. Inject into live session (best-effort)
