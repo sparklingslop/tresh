@@ -1,0 +1,35 @@
+{
+  "name": "tmesh",
+  "version": "0.0.1",
+  "description": "tmux-native agent mesh. Zero infrastructure inter-session communication.",
+  "type": "module",
+  "main": "src/index.ts",
+  "bin": {
+    "tmesh": "src/cli/index.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "build": "bun build src/cli/index.ts --outdir dist --target bun",
+    "tmesh": "bun run src/cli/index.ts"
+  },
+  "license": "MIT",
+  "keywords": [
+    "tmux",
+    "mesh",
+    "agent",
+    "ipc",
+    "cli",
+    "ai-agents",
+    "inter-process-communication"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jankowtf/tmesh"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
