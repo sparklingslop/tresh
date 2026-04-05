@@ -30,6 +30,7 @@ import './commands/topology';
 // Commands loaded in Phase 5:
 import './commands/inject';
 import './commands/peek';
+import './commands/viz';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -115,6 +116,7 @@ Commands:
   topology    Show all nodes and connections
   inject      Raw tmux send-keys injection
   peek        Capture-pane snapshot of a session
+  viz         Visual mesh dashboard (requires gum)
   help        Show this help message
 
 Options:
