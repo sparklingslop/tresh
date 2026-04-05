@@ -51,14 +51,14 @@ describe('formatWireMessage', () => {
     expect(wire).toContain('Hello from the mesh');
   });
 
-  test('has no pipes, angle brackets, or XML', () => {
+  test('has no pipes or XML-style tags', () => {
     const wire = formatWireMessage({
       id: '01ABC', from: 'alice', to: 'bob',
       type: 'message', channel: 'default', content: 'test',
       timestamp: '2026-04-05T16:30:00Z',
     });
     expect(wire).not.toContain('|');
-    expect(wire).not.toContain('<');
+    // <-- arrow is fine, but no XML <tags>
     expect(wire).not.toContain('>');
   });
 
