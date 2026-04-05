@@ -8,6 +8,11 @@
 
 import type { TmeshSignal, SignalType, Ulid } from '../types';
 import { ensureHome, writeIdentity } from './identity';
+import {
+  inject as rawInject,
+  peek as rawPeek,
+} from './inject';
+import type { InjectOptions, PeekOptions, InjectResult, PeekResult } from './inject';
 import { createSignal } from './signal';
 import { deliverSignal, listInbox, readSignalFile, ackSignal, cleanExpired } from './transport';
 import { watchInbox } from './watch';
@@ -61,6 +66,10 @@ export interface Tmesh {
   clean(): Promise<number>;
   /** Watch inbox for new signals. Returns an async iterator. */
   watch(options?: WatchOptions): AsyncGenerator<TmeshSignal, void, undefined>;
+  /** Inject text into a tmux session via send-keys (Layer 1). */
+  inject(session: string, message: string, options?: InjectOptions): InjectResult;
+  /** Peek at a tmux session's screen content via capture-pane (Layer 1). */
+  peek(session: string, options?: PeekOptions): PeekResult;
 }
 
 // ---------------------------------------------------------------------------
@@ -177,6 +186,22 @@ export async function createTmesh(options: TmeshOptions): Promise<Tmesh> {
 
     async *watch(opts?: WatchOptions): AsyncGenerator<TmeshSignal, void, undefined> {
       yield* watchInbox(home, opts);
+    },
+
+    inject(session: string, message: string, opts?: InjectOptions): InjectResult {
+      const result = rawInject(session, message, opts);
+      if (!result.ok) {
+        throw new Error(result.error.message);
+      }
+      return result.value;
+    },
+
+    peek(session: string, opts?: PeekOptions): PeekResult {
+      const result = rawPeek(session, opts);
+      if (!result.ok) {
+        throw new Error(result.error.message);
+      }
+      return result.value;
     },
   };
 }

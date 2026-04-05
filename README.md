@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.2-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.3-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-208%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-263%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -38,7 +38,7 @@ await mesh.send('nano-cortex', {
 await mesh.broadcast({
   type: 'event',
   channel: 'deploys',
-  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.2' }),
+  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.3' }),
 });
 
 // Watch inbox for incoming signals
@@ -251,6 +251,30 @@ $ tmesh who
   nano-mesh      kai-claude-code-2    claude    active
 ```
 
+### `tmesh inject <session> "text"`
+
+Inject text into a tmux session via `send-keys` (Layer 1 direct injection).
+
+```
+$ tmesh inject agent-beta "Deploy complete"
+Injected 15 chars into agent-beta
+```
+
+Session targets are validated against a strict whitelist pattern. Messages are escaped to prevent command injection. Uses `execFileSync` (no shell) for execution.
+
+Flags: `--no-enter` (don't append Enter after the message)
+
+### `tmesh peek <session>`
+
+Capture the screen content of a tmux session via `capture-pane`.
+
+```
+$ tmesh peek agent-beta --lines 20
+[last 20 lines of agent-beta's screen output]
+```
+
+Flags: `--lines <n>` (capture last N lines)
+
 ### `tmesh send <target> "message"`
 
 Send a signal to a specific node.
@@ -368,6 +392,10 @@ for await (const signal of mesh.watch()) {
 
 // Clean expired signals
 const cleaned = await mesh.clean();
+
+// Direct injection (Layer 1 -- raw tmux)
+mesh.inject('agent-beta', 'Hello from tmesh!');
+const screen = mesh.peek('agent-beta', { lines: 20 });
 ```
 
 ### Lower-level APIs
@@ -401,24 +429,26 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.0.2
+## What's in 0.0.3
 
-Phases 1-4 complete: Discovery, Transport, Full CLI, and Library API.
+Phases 1-5 complete: Discovery, Transport, Full CLI, Library API, and Direct Injection.
 
 **Shipped:**
-- 12 CLI commands: `ls`, `who`, `identify`, `send`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`
-- `createTmesh()` factory -- the primary library API with send, broadcast, discover, inbox, watch, ack, clean
-- File-based signal transport with atomic writes (temp + rename)
+- 14 CLI commands: `ls`, `who`, `identify`, `send`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`, `inject`, `peek`
+- `createTmesh()` factory -- the primary library API with send, broadcast, discover, inbox, watch, ack, clean, inject, peek
+- Direct injection via `tmux send-keys` with hardened shell escaping (Layer 1)
+- Screen capture via `tmux capture-pane` (Layer 1)
+- File-based signal transport with atomic writes (Layer 2)
 - Inbox watcher with `fs.watch` + polling fallback and `AbortSignal` support
 - TTL-based signal expiry and cleanup
 - Standalone binary via `bun build --compile`
+- Security: `execFileSync` (no shell), input validation, session target whitelisting
 - Branded types (`SessionName`, `Identity`, `Ulid`) with `Result<T, E>` monad
 - Monotonic ULID generation (zero-dep, Crockford base32)
-- 208+ tests, 611+ assertions
+- 263+ tests, 682+ assertions
 - Zero production dependencies
 
-**Next (Phase 5):**
-- Direct injection (`tmesh inject`, `tmesh peek`) -- Layer 1 raw tmux integration
+**Next (Phase 6):**
 - npm publish + GitHub release
 
 ## Comparison with Alternatives

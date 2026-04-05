@@ -27,6 +27,9 @@ import './commands/cast';
 import './commands/watch';
 import './commands/ping';
 import './commands/topology';
+// Commands loaded in Phase 5:
+import './commands/inject';
+import './commands/peek';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -110,6 +113,8 @@ Commands:
   watch       Tail incoming signals (like tail -f)
   ping        Ping a node (delivery check)
   topology    Show all nodes and connections
+  inject      Raw tmux send-keys injection
+  peek        Capture-pane snapshot of a session
   help        Show this help message
 
 Options:

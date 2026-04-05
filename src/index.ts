@@ -84,3 +84,20 @@ export {
 export type {
   WatchOptions,
 } from './core/watch';
+
+// Inject (Phase 5 -- Layer 1 raw tmux)
+export {
+  inject,
+  peek,
+  escapeForTmux,
+  validateSessionTarget,
+  buildInjectCommand,
+  buildPeekCommand,
+} from './core/inject';
+
+export type {
+  InjectOptions,
+  PeekOptions,
+  InjectResult,
+  PeekResult,
+} from './core/inject';

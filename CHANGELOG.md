@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2026-04-05
+
+### Added
+
+- **CLI: inject**: `tmesh inject <session> "text"` -- raw `tmux send-keys` injection into any tmux session. Hardened shell escaping prevents command injection.
+- **CLI: peek**: `tmesh peek <session>` -- `tmux capture-pane` screen snapshot with optional `--lines` flag.
+- **Inject module**: `escapeForTmux()` escapes 14 shell metacharacter classes (quotes, dollar signs, backticks, semicolons, pipes, ampersands, parentheses, control chars). `validateSessionTarget()` whitelists session name characters.
+- **Library API**: `mesh.inject()` and `mesh.peek()` added to `createTmesh()` factory.
+- **Exports**: `inject`, `peek`, `escapeForTmux`, `validateSessionTarget`, `buildInjectCommand`, `buildPeekCommand` and associated types exported from library entry point.
+
+### Security
+
+- All tmux commands use `execFileSync` (not `execSync`) to avoid shell interpolation.
+- Session target names validated against strict regex pattern before use in any command.
+- Message content escaped defensively even though `execFileSync` doesn't invoke a shell.
+- 5-second timeout on all tmux exec calls to prevent hangs.
+
+### Architecture
+
+- 263+ tests, 682+ assertions
+- 14 CLI commands fully operational
+
 ## [0.0.2] - 2026-04-05
 
 ### Added
@@ -49,5 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.3]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.3
 [0.0.2]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.1
