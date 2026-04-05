@@ -21,6 +21,12 @@ import './commands/send';
 import './commands/inbox';
 import './commands/read';
 import './commands/ack';
+// Commands loaded in Phase 3:
+import './commands/broadcast';
+import './commands/cast';
+import './commands/watch';
+import './commands/ping';
+import './commands/topology';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -96,9 +102,14 @@ Commands:
   who         Show identity of current session
   identify    Set identity for current session
   send        Send a signal to a specific node
+  broadcast   Send a signal to all known nodes
+  cast        Send to a channel/topic
   inbox       List pending signals in the inbox
   read        Read a specific signal by ID
   ack         Acknowledge (delete) a signal
+  watch       Tail incoming signals (like tail -f)
+  ping        Ping a node (delivery check)
+  topology    Show all nodes and connections
   help        Show this help message
 
 Options:

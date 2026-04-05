@@ -53,6 +53,11 @@ export type {
   CreateSignalInput,
 } from './core/signal';
 
+// Nodes
+export {
+  listNodes,
+} from './core/nodes';
+
 // Transport (Phase 2)
 export {
   deliverSignal,
