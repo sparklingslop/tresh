@@ -52,3 +52,26 @@ export {
 export type {
   CreateSignalInput,
 } from './core/signal';
+
+// Transport (Phase 2)
+export {
+  deliverSignal,
+  listInbox,
+  readSignalFile,
+  ackSignal,
+  cleanExpired,
+  ensureInbox,
+} from './core/transport';
+
+export type {
+  DeliverOptions,
+} from './core/transport';
+
+// Watch (Phase 2)
+export {
+  watchInbox,
+} from './core/watch';
+
+export type {
+  WatchOptions,
+} from './core/watch';
