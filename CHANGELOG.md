@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-04-05
+
+### Added
+
+- **CLI: @**: `tmesh @ "Hey @alice and @bob, deploy ready"` -- parses @mentions from message text, delivers a signal to each mentioned node with tmux notification. Skips self-mentions. Harness-agnostic.
+- **@-mention parser**: `parseMentions()` extracts @identities from text. Handles dots, hyphens, underscores. Excludes email-like patterns. Deduplicates.
+- **CLI: hooks**: `tmesh hooks install` installs tmux global hooks (`session-created`, `session-closed`) that auto-register/deregister nodes. `tmesh hooks uninstall` removes them. `tmesh hooks status` shows active hooks.
+- **CLI: register/deregister**: Internal commands called by tmux hooks. Creates/removes node inbox directories.
+- **Library exports**: `parseMentions`, `installHooks`, `uninstallHooks`, `buildInstallCommands`, `buildUninstallCommands`, `HOOK_NAMES`.
+
+### Architecture
+
+- 309+ tests, 768+ assertions
+- 18 CLI commands (+ 2 internal: register, deregister)
+
 ## [0.0.4] - 2026-04-05
 
 ### Fixed
@@ -94,6 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.5]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.5
 [0.0.4]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.4
 [0.0.3]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.3
 [0.0.2]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.2

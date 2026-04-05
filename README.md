@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.4-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.5-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-276%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-309%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -38,7 +38,7 @@ await mesh.send('nano-cortex', {
 await mesh.broadcast({
   type: 'event',
   channel: 'deploys',
-  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.4' }),
+  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.5' }),
 });
 
 // Watch inbox for incoming signals
@@ -432,7 +432,7 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.0.4
+## What's in 0.0.5
 
 All 5 implementation phases complete. Real-time bidirectional communication verified.
 
@@ -448,7 +448,10 @@ All 5 implementation phases complete. Real-time bidirectional communication veri
 - File-based signal transport with atomic writes, TTL expiry, ULID ordering
 - Security: `execFileSync` (no shell), input validation, session target whitelisting
 - Branded types, `Result<T, E>` monad, zero production dependencies
-- 276+ tests, 712+ assertions
+- `tmesh @` -- @-mention routing: `tmesh @ "Hey @alice and @bob, deploy ready"` auto-delivers to all mentioned nodes
+- `tmesh hooks install` -- tmux auto-registration: new sessions auto-join the mesh
+- `tmesh register`/`deregister` -- called by tmux hooks, creates/removes node directories
+- 309+ tests, 768+ assertions
 
 ## Comparison with Alternatives
 
