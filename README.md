@@ -5,7 +5,7 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.2.0-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.2-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
   <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-208%2B%20passing-brightgreen" alt="tests"></a>
@@ -38,7 +38,7 @@ await mesh.send('nano-cortex', {
 await mesh.broadcast({
   type: 'event',
   channel: 'deploys',
-  content: JSON.stringify({ repo: 'tmesh', version: 'v0.2.0' }),
+  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.2' }),
 });
 
 // Watch inbox for incoming signals
@@ -401,7 +401,7 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.2.0
+## What's in 0.0.2
 
 Phases 1-4 complete: Discovery, Transport, Full CLI, and Library API.
 
