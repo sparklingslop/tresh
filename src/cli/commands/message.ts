@@ -104,11 +104,7 @@ registerCommand('message', async (args, flags) => {
 
   // Display outbound message on sender side
   const status = injected ? 'delivered + injected' : 'delivered (offline)';
-  process.stdout.write(formatOutbound({
-    target,
-    content,
-    timestamp: signal.timestamp,
-    status,
-  }) + '\n');
+  const outboundDisplay = formatOutbound({ target, content, timestamp: signal.timestamp, status });
+  process.stdout.write(outboundDisplay + '\n');
   return 0;
 });
