@@ -10,6 +10,6 @@ registerCommand('broadcast', async (args, flags) => {
     return 1;
   }
   const sendHandler = getCommand('send');
-  if (sendHandler === undefined) return 1;
+  if (sendHandler === undefined) { process.stderr.write('Error: send command not registered.\n'); return 1; }
   return sendHandler(['*', args[0]!], flags);
 });

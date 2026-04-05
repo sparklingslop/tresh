@@ -193,7 +193,7 @@ async function sendBroadcast(
   const results = await Promise.all(
     targets.map(async (node) => {
       const result = await deliverSignal(signalResult.value, `${home}/nodes/${node}`);
-      return result.ok ? 1 as number : 0 as number;
+      return Number(result.ok);
     }),
   );
   const delivered = results.reduce((a, b) => a + b, 0);

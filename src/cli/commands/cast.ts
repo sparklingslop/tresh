@@ -12,6 +12,6 @@ registerCommand('cast', async (args, _flags) => {
   const channel = args[0]!;
   const content = args[1]!;
   const sendHandler = getCommand('send');
-  if (sendHandler === undefined) return 1;
+  if (sendHandler === undefined) { process.stderr.write('Error: send command not registered.\n'); return 1; }
   return sendHandler(['*', content], new Map([['channel', channel], ['type', 'event']]));
 });
