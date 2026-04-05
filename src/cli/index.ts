@@ -80,7 +80,8 @@ export function parseArgs(argv: readonly string[]): Result<ParsedArgs> {
     return Err(new Error('No command provided. Run "tmesh help" for usage.'));
   }
 
-  const command = raw[0]!;
+  const first = raw[0]!;
+  const command = first === '--help' ? 'help' : first;
   const positional: string[] = [];
   const flags = new Map<string, string | boolean>();
 
