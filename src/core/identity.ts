@@ -161,7 +161,13 @@ export async function identify(
   name: string,
   home?: string,
 ): Promise<Result<Identity>> {
-  const writeResult = await writeIdentity(name, home);
+  // Ensure home directory exists before writing
+  const homeResult = await ensureHome(home);
+  if (!homeResult.ok) {
+    return homeResult as Result<Identity>;
+  }
+
+  const writeResult = await writeIdentity(name, homeResult.value);
   if (!writeResult.ok) {
     return writeResult;
   }
