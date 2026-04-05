@@ -35,6 +35,7 @@ import './commands/at';
 import './commands/message';
 import './commands/hooks';
 import './commands/register';
+import './commands/init';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -123,6 +124,7 @@ Commands:
   viz         Visual mesh dashboard (requires gum)
   message     Send to agent (file + inject + notify)
   @           Send to all @mentioned nodes
+  init        Hot-bootstrap a session onto the mesh
   hooks       Manage tmux auto-registration hooks
   help        Show this help message
 
