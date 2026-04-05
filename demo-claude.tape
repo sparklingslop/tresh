@@ -1,5 +1,5 @@
-# tmesh: two Claude Code agents self-coordinating
-# Alice and Bob are separate Claude sessions that communicate autonomously
+# tmesh: two Claude Code agents communicating via direct injection
+# Alice injects into Bob's session. Bob responds by injecting back. No polling.
 
 Output assets/demo-claude.gif
 
@@ -11,55 +11,50 @@ Set Padding 10
 Set Theme "Catppuccin Mocha"
 Set TypingSpeed 40ms
 
-# --- Launch alice and bob Claude sessions on the mesh ---
+# --- Launch alice and bob, accept trust, wait for full startup ---
 Hide
 Type "bash scripts/demo-claude-live.sh"
 Enter
-Sleep 35s
+# 8s in script for trust + 40s more for full Claude startup
+Sleep 50s
 Show
 
-# --- Attach: both Claude sessions visible ---
-Type "tmux attach -t cc-demo"
+# --- View alice's session (Claude should be ready) ---
+Type "tmux attach -t alice"
 Enter
 Sleep 5s
 
-# --- Alice: one prompt, then she coordinates autonomously ---
-Type@50ms "Send a message to bob via tmesh asking if he is ready to deploy v1.0. Then watch for his reply with tmesh log --follow."
+# --- Give alice one task: find bob and inject a message ---
+Type@50ms "Use tmesh who to find bob's session, then tmesh inject to ask him if he is ready to deploy v1.0"
 Enter
-Sleep 40s
+Sleep 50s
 
-# --- Bob: one prompt, then he handles it ---
+# --- Switch to bob to see the injection arrive and his response ---
 Ctrl+b
-Right
-Sleep 2s
+Type "d"
+Sleep 1s
 
-Type@50ms "Check your tmesh inbox for messages and respond to the sender."
+Type "tmux attach -t bob"
 Enter
-Sleep 40s
+Sleep 60s
 
-# --- Back to alice to see the reply ---
+# --- Switch back to alice to see bob's reply ---
 Ctrl+b
-Left
-Sleep 20s
+Type "d"
+Sleep 1s
+
+Type "tmux attach -t alice"
+Enter
+Sleep 30s
 
 # --- Hold ---
 Sleep 5s
 
 # --- Cleanup ---
 Hide
-Ctrl+c
-Sleep 1s
-Type "/exit"
-Enter
-Sleep 2s
 Ctrl+b
-Right
+Type "d"
 Sleep 500ms
-Type "/exit"
-Enter
-Sleep 2s
-Ctrl+b
-Type ":"
-Type "kill-session"
+Type "tmux kill-session -t alice; tmux kill-session -t bob"
 Enter
 Sleep 500ms
