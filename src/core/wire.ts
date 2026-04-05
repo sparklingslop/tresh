@@ -51,14 +51,14 @@ export function formatWireMessage(msg: WireMessage): string {
     ? msg.content.slice(0, maxContent - 3) + '...'
     : msg.content;
 
-  return `[tmesh ${date} ${time}] ${msg.from}: ${content}`;
+  return `[tmesh ${date} ${time}] <-- ${msg.from}: ${content}`;
 }
 
 // ---------------------------------------------------------------------------
 // Parse
 // ---------------------------------------------------------------------------
 
-const DISPLAY_PATTERN = /\[tmesh (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (\S+): (.+)/;
+const DISPLAY_PATTERN = /\[tmesh (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] <-- (\S+): (.+)/;
 
 /**
  * Parse a tmesh display message. Returns null if not a tmesh message.
