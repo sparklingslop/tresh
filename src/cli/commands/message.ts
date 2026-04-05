@@ -6,6 +6,6 @@ import { registerCommand, getCommand } from '../registry';
 
 registerCommand('message', async (args, flags) => {
   const sendHandler = getCommand('send');
-  if (sendHandler === undefined) return 1;
+  if (sendHandler === undefined) { process.stderr.write('Error: send command not registered.\n'); return 1; }
   return sendHandler(args, flags);
 });

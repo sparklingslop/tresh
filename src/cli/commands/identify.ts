@@ -8,12 +8,11 @@ import type { Result } from '../../types';
 import { Ok, Err } from '../../types';
 import { identify } from '../../core/identity';
 import { registerCommand } from '../registry';
+import { isValidIdentity } from '../util';
 
 // ---------------------------------------------------------------------------
 // Validation (exported for testing)
 // ---------------------------------------------------------------------------
-
-const IDENTITY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
 /**
  * Validate CLI arguments for the identify command.
@@ -25,7 +24,7 @@ export function validateIdentifyArgs(args: readonly string[]): Result<string> {
 
   const name = args[0]!;
 
-  if (!IDENTITY_PATTERN.test(name)) {
+  if (!isValidIdentity(name)) {
     return Err(
       new Error(
         `Invalid identity: "${name}". Must start with alphanumeric, contain only alphanumeric, dots, hyphens, underscores.`,

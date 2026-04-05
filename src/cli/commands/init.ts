@@ -13,6 +13,7 @@
 import { registerCommand } from '../registry';
 import { initSession } from '../../core/init';
 import { validateSessionTarget } from '../../core/inject';
+import { resolveTmeshBin } from '../util';
 
 registerCommand('init', async (args, _flags) => {
   if (args.length < 2) {
@@ -29,7 +30,7 @@ registerCommand('init', async (args, _flags) => {
   }
 
   // Use the current script as the tmesh binary for the alias
-  const tmeshBin = process.argv[1] ?? 'tmesh';
+  const tmeshBin = resolveTmeshBin();
 
   const result = await initSession(session, identity, tmeshBin);
   if (!result.ok) {

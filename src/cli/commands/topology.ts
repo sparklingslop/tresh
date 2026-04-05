@@ -6,6 +6,6 @@ import { registerCommand, getCommand } from '../registry';
 
 registerCommand('topology', async (_args, _flags) => {
   const whoHandler = getCommand('who');
-  if (whoHandler === undefined) return 1;
+  if (whoHandler === undefined) { process.stderr.write('Error: who command not registered.\n'); return 1; }
   return whoHandler([], new Map([['topology', true]]));
 });

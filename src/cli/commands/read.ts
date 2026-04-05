@@ -10,6 +10,6 @@ registerCommand('read', async (args, _flags) => {
     return 1;
   }
   const logHandler = getCommand('log');
-  if (logHandler === undefined) return 1;
+  if (logHandler === undefined) { process.stderr.write('Error: log command not registered.\n'); return 1; }
   return logHandler([], new Map([['read', args[0]!]]));
 });

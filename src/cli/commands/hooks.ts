@@ -10,11 +10,7 @@
 import { execFileSync } from 'node:child_process';
 import { registerCommand } from '../registry';
 import { installHooks, uninstallHooks } from '../../core/hooks';
-
-function findTmeshBin(): string {
-  // Use the currently running script as the binary path
-  return process.argv[1] ?? 'tmesh';
-}
+import { resolveTmeshBin } from '../util';
 
 registerCommand('hooks', async (args, _flags) => {
   if (args.length < 1) {
@@ -26,7 +22,7 @@ registerCommand('hooks', async (args, _flags) => {
 
   switch (subcommand) {
     case 'install': {
-      const bin = findTmeshBin();
+      const bin = resolveTmeshBin();
       const result = installHooks(bin);
       if (!result.ok) {
         process.stderr.write(`Error: ${result.error.message}\n`);
