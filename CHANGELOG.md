@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6] - 2026-04-05
+
+### Added
+
+- **Conversation log**: append-only per-node log file at `~/.tmesh/nodes/{identity}/conversation.log`. Every send appends `-->`, every delivery appends `<--`. Both directions in one stream. The definitive conversation view.
+- **CLI: log**: `tmesh log` shows conversation history. Supports `--tail N`.
+- **CLI: message**: Unified send command -- file delivery + wire-formatted tmux injection + display-message notification.
+- **CLI: init**: `tmesh init <session> <identity>` hot-bootstraps any tmux session onto the mesh from outside. Sets identity, creates inbox, injects shell alias + protocol primer.
+- **Wire format v3**: `[tmesh YYYY-MM-DD HH:MM:SS] <-- sender: content`. Clean, timestamped, no pipes/XML/escaping. Direction arrows: `-->` outbound, `<--` inbound.
+- **PROTOCOL.md**: Auto-generated protocol document dropped into `~/.tmesh/` on identify. Teaches any agent how to send, receive, and reply via tmesh.
+- **tmesh watch** now tails the conversation log (both directions) instead of watching inbox files.
+- **justfile**: Task runner with `just test`, `just qa`, `just test-all`, `just viz`, `just status`.
+- **QA acceptance suite**: 31 system-level tests against real tmux sessions (`just qa`).
+
+### Fixed
+
+- **Inbox routing**: nodes read from `nodes/{identity}/inbox/` where send delivers.
+- **Per-session identity**: `TMESH_IDENTITY` env var takes priority over shared file.
+- **Wire format escaping**: eliminated pipes, XML tags, quotes from injected messages.
+
+### Verified
+
+- Real-time bidirectional tmesh communication between live Claude Code agents: tmesh-hq <-> nano-research, tmesh-hq <-> pong, tmesh-hq <-> nano-autoevolve.
+- nano-research and pong both replied via tmesh (not cortex-mesh) after hot-init.
+
+### Architecture
+
+- 389+ tests, 920+ assertions
+- 22 CLI commands
+- Conversation log is the new core (no adapters needed for visibility)
+
 ## [0.0.5] - 2026-04-05
 
 ### Added
@@ -109,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.6]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.6
 [0.0.5]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.5
 [0.0.4]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.4
 [0.0.3]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.3
