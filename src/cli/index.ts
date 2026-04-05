@@ -32,6 +32,7 @@ import './commands/inject';
 import './commands/peek';
 import './commands/viz';
 import './commands/at';
+import './commands/message';
 import './commands/hooks';
 import './commands/register';
 // ---------------------------------------------------------------------------
@@ -120,6 +121,7 @@ Commands:
   inject      Raw tmux send-keys injection
   peek        Capture-pane snapshot of a session
   viz         Visual mesh dashboard (requires gum)
+  message     Send to agent (file + inject + notify)
   @           Send to all @mentioned nodes
   hooks       Manage tmux auto-registration hooks
   help        Show this help message
