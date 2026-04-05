@@ -49,10 +49,11 @@ describe('ack command', () => {
       content: 'ack me',
     });
     if (!signalResult.ok) throw new Error(signalResult.error.message);
-    await deliverSignal(signalResult.value, tempDir);
+    const bobNodeHome = join(tempDir, 'nodes', 'bob');
+    await deliverSignal(signalResult.value, bobNodeHome);
 
-    // Verify signal is in inbox
-    let files = await readdir(join(tempDir, 'inbox'));
+    // Verify signal is in bob's node inbox
+    let files = await readdir(join(bobNodeHome, 'inbox'));
     expect(files.length).toBe(1);
 
     const { run } = await import('../../index');
@@ -60,7 +61,7 @@ describe('ack command', () => {
     expect(exitCode).toBe(0);
 
     // Verify signal is removed
-    files = await readdir(join(tempDir, 'inbox'));
+    files = await readdir(join(bobNodeHome, 'inbox'));
     expect(files.length).toBe(0);
   });
 

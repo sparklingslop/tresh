@@ -75,14 +75,15 @@ describe('collectVizData', () => {
     await ensureHome(tempDir);
     await writeIdentity('alice', tempDir);
 
-    // Deliver signals to alice's own inbox
+    // Deliver signals to alice's node inbox (where send writes to)
+    const aliceNodeHome = join(tempDir, 'nodes', 'alice');
     const s1 = createSignal({ sender: 'bob', target: 'alice', type: 'message', content: 'hey' });
     if (!s1.ok) throw new Error(s1.error.message);
-    await deliverSignal(s1.value, tempDir);
+    await deliverSignal(s1.value, aliceNodeHome);
 
     const s2 = createSignal({ sender: 'charlie', target: 'alice', type: 'event', content: 'ping' });
     if (!s2.ok) throw new Error(s2.error.message);
-    await deliverSignal(s2.value, tempDir);
+    await deliverSignal(s2.value, aliceNodeHome);
 
     const data = await collectVizData(tempDir);
     expect(data.inboxCount).toBe(2);
@@ -92,9 +93,10 @@ describe('collectVizData', () => {
     await ensureHome(tempDir);
     await writeIdentity('alice', tempDir);
 
+    const aliceNodeHome = join(tempDir, 'nodes', 'alice');
     const sig = createSignal({ sender: 'bob', target: 'alice', type: 'message', content: 'hello alice' });
     if (!sig.ok) throw new Error(sig.error.message);
-    await deliverSignal(sig.value, tempDir);
+    await deliverSignal(sig.value, aliceNodeHome);
 
     const data = await collectVizData(tempDir);
     expect(data.recentSignals.length).toBe(1);

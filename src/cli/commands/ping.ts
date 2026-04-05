@@ -5,7 +5,7 @@
  */
 
 import { registerCommand } from '../registry';
-import { readIdentity } from '../../core/identity';
+import { resolveEffectiveIdentity } from '../../core/identity';
 import { createSignal } from '../../core/signal';
 import { deliverSignal } from '../../core/transport';
 import { resolveHome } from '../../types';
@@ -19,7 +19,7 @@ registerCommand('ping', async (args, _flags) => {
   const target = args[0]!;
   const home = resolveHome();
 
-  const identityResult = await readIdentity(home);
+  const identityResult = await resolveEffectiveIdentity(home);
   if (!identityResult.ok) {
     process.stderr.write(`Error: ${identityResult.error.message}\nRun "tmesh identify <name>" first.\n`);
     return 1;
