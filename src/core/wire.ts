@@ -44,20 +44,21 @@ export const WIRE_PREFIX = '[tmesh';
  * Long:   [tmesh 16:30] tmesh-hq: This is a longer message that gets trun...
  */
 export function formatWireMessage(msg: WireMessage): string {
-  const time = msg.timestamp.slice(11, 16); // HH:MM from ISO string
+  const date = msg.timestamp.slice(0, 10);   // YYYY-MM-DD
+  const time = msg.timestamp.slice(11, 19);  // HH:MM:SS
   const maxContent = 120;
   const content = msg.content.length > maxContent
     ? msg.content.slice(0, maxContent - 3) + '...'
     : msg.content;
 
-  return `[tmesh ${time}] ${msg.from}: ${content}`;
+  return `[tmesh ${date} ${time}] ${msg.from}: ${content}`;
 }
 
 // ---------------------------------------------------------------------------
 // Parse
 // ---------------------------------------------------------------------------
 
-const DISPLAY_PATTERN = /\[tmesh (\d{2}:\d{2})\] (\S+): (.+)/;
+const DISPLAY_PATTERN = /\[tmesh (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (\S+): (.+)/;
 
 /**
  * Parse a tmesh display message. Returns null if not a tmesh message.

@@ -30,7 +30,7 @@ describe('formatWireMessage', () => {
       type: 'message', channel: 'default', content: 'hello',
       timestamp: '2026-04-05T16:30:00Z',
     });
-    expect(wire).toContain('16:30');
+    expect(wire).toContain('2026-04-05 16:30:00');
   });
 
   test('includes sender identity', () => {
@@ -94,7 +94,7 @@ describe('parseWireMessage', () => {
     const parsed = parseWireMessage(wire);
     expect(parsed).not.toBeNull();
     expect(parsed!.from).toBe('tmesh-hq');
-    expect(parsed!.time).toBe('16:30');
+    expect(parsed!.time).toBe('2026-04-05 16:30:00');
     expect(parsed!.content).toContain('Hello from the mesh');
   });
 
