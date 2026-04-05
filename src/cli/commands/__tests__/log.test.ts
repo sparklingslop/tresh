@@ -92,7 +92,7 @@ describe('log command (consolidated)', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.length).toBe(1);
-      expect(result.value[0]!.sender).toBe('bob');
+      expect(result.value[0]!.sender as string).toBe('bob');
     }
   });
 

@@ -65,8 +65,8 @@ export function buildNotifyCommand(
  * Find the tmux session name for a given mesh identity.
  * Scans tmux sessions for TMESH_IDENTITY env var match.
  */
-export async function findSessionForIdentity(identity: string): Promise<string | null> {
-  const sessions = await discover();
+export function findSessionForIdentity(identity: string): string | null {
+  const sessions = discover();
   if (!sessions.ok) return null;
 
   for (const session of sessions.value) {
@@ -88,14 +88,14 @@ export async function findSessionForIdentity(identity: string): Promise<string |
  * status bar notification. Best-effort -- silently fails if
  * session not found or tmux command fails.
  */
-export async function notifyNode(
+export function notifyNode(
   targetIdentity: string,
   sender: string,
   type: string,
   content: string,
   options?: NotifyOptions,
-): Promise<Result<void>> {
-  const session = await findSessionForIdentity(targetIdentity);
+): Result<void> {
+  const session = findSessionForIdentity(targetIdentity);
   if (session === null) {
     // Node not found in tmux -- signal was still delivered to filesystem
     return Ok(undefined);
