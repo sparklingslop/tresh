@@ -133,6 +133,67 @@ export function resolveSessionIdentity(
 }
 
 // ---------------------------------------------------------------------------
+// resolveEffectiveIdentity
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the effective identity for the current session.
+ *
+ * Priority:
+ * 1. TMESH_IDENTITY env var (set per-session by tmux set-environment)
+ * 2. Identity file at {home}/identity
+ *
+ * In a shared-home setup, the env var is critical because the identity
+ * file is shared across all sessions. The tmux env var is per-session.
+ */
+export async function resolveEffectiveIdentity(home?: string): Promise<Result<Identity>> {
+  // Check env var first (per-session, set by tmux set-environment)
+  const envIdentity = process.env['TMESH_IDENTITY'];
+  if (envIdentity !== undefined && envIdentity.trim().length > 0) {
+    try {
+      return Ok(Identity(envIdentity.trim()));
+    } catch (err: unknown) {
+      return Err(err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  // Fall back to identity file
+  return readIdentity(home);
+}
+
+// ---------------------------------------------------------------------------
+// resolveNodeHome
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the home directory for a specific node identity.
+ *
+ * In the shared-home model, each node's inbox is at:
+ *   {home}/nodes/{identity}/
+ *
+ * This is where `send` writes signals to, and where the
+ * node should read its inbox from.
+ */
+export function resolveNodeHome(identity: string, home?: string): string {
+  const dir = home ?? resolveHome();
+  return join(dir, 'nodes', identity);
+}
+
+/**
+ * Resolve this session's node home by reading its identity.
+ * Returns the path where this node's inbox lives.
+ * Uses resolveEffectiveIdentity (env var > file) for per-session correctness.
+ */
+export async function resolveMyNodeHome(home?: string): Promise<Result<string>> {
+  const dir = home ?? resolveHome();
+  const identityResult = await resolveEffectiveIdentity(dir);
+  if (!identityResult.ok) {
+    return identityResult as Result<string>;
+  }
+  return Ok(resolveNodeHome(identityResult.value, dir));
+}
+
+// ---------------------------------------------------------------------------
 // setTmuxEnvIdentity
 // ---------------------------------------------------------------------------
 

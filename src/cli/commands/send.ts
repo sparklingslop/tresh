@@ -5,7 +5,7 @@
  */
 
 import { registerCommand } from '../registry';
-import { readIdentity } from '../../core/identity';
+import { resolveEffectiveIdentity } from '../../core/identity';
 import { createSignal } from '../../core/signal';
 import { deliverSignal } from '../../core/transport';
 import { resolveHome } from '../../types';
@@ -22,7 +22,7 @@ registerCommand('send', async (args, flags) => {
   const home = resolveHome();
 
   // Read sender identity
-  const identityResult = await readIdentity(home);
+  const identityResult = await resolveEffectiveIdentity(home);
   if (!identityResult.ok) {
     process.stderr.write(`Error: ${identityResult.error.message}\nRun "tmesh identify <name>" first.\n`);
     return 1;

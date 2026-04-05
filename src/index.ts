@@ -38,6 +38,9 @@ export {
   writeIdentity,
   identify,
   resolveSessionIdentity,
+  resolveEffectiveIdentity,
+  resolveNodeHome,
+  resolveMyNodeHome,
   ensureHome,
 } from './core/identity';
 

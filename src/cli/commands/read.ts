@@ -6,6 +6,7 @@
 
 import { registerCommand } from '../registry';
 import { readSignalFile } from '../../core/transport';
+import { resolveMyNodeHome } from '../../core/identity';
 import { resolveHome } from '../../types';
 
 registerCommand('read', async (args, _flags) => {
@@ -17,7 +18,13 @@ registerCommand('read', async (args, _flags) => {
   const signalId = args[0]!;
   const home = resolveHome();
 
-  const result = await readSignalFile(signalId, home);
+  const nodeHome = await resolveMyNodeHome(home);
+  if (!nodeHome.ok) {
+    process.stderr.write(`Error: ${nodeHome.error.message}\nRun "tmesh identify <name>" first.\n`);
+    return 1;
+  }
+
+  const result = await readSignalFile(signalId, nodeHome.value);
   if (!result.ok) {
     process.stderr.write(`Error: ${result.error.message}\n`);
     return 1;

@@ -49,7 +49,7 @@ describe('read command', () => {
       content: 'read this signal',
     });
     if (!signalResult.ok) throw new Error(signalResult.error.message);
-    await deliverSignal(signalResult.value, tempDir);
+    await deliverSignal(signalResult.value, join(tempDir, 'nodes', 'bob'));
 
     const { run } = await import('../../index');
     const exitCode = await run(['node', 'tmesh', 'read', signalResult.value.id]);

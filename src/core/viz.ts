@@ -6,7 +6,7 @@
  * Zero dependencies -- only internal tmesh modules.
  */
 
-import { readIdentity } from './identity';
+import { resolveEffectiveIdentity, resolveNodeHome } from './identity';
 import { listNodes } from './nodes';
 import { listInbox } from './transport';
 import type { TmeshSignal } from '../types';
@@ -38,18 +38,20 @@ export interface VizData {
  */
 export async function collectVizData(home: string): Promise<VizData> {
   // Own identity
-  const identityResult = await readIdentity(home);
+  const identityResult = await resolveEffectiveIdentity(home);
   const identity = identityResult.ok ? identityResult.value : '(unidentified)';
 
-  // Own inbox
-  const inboxResult = await listInbox(home);
+  // Own inbox: at nodes/{myIdentity}/inbox
+  const myNodeHome = identityResult.ok ? resolveNodeHome(identity, home) : home;
+  const inboxResult = await listInbox(myNodeHome);
   const ownSignals = inboxResult.ok ? inboxResult.value : [];
 
-  // Known peers
+  // Known peers (excluding self)
   const nodeNames = await listNodes(home);
   const nodes: VizNode[] = [];
 
   for (const name of nodeNames) {
+    if (name === identity) continue; // skip self
     const peerInbox = await listInbox(`${home}/nodes/${name}`);
     const count = peerInbox.ok ? peerInbox.value.length : 0;
     nodes.push({ identity: name, inboxCount: count });
@@ -63,7 +65,7 @@ export async function collectVizData(home: string): Promise<VizData> {
     nodes,
     inboxCount: ownSignals.length,
     recentSignals,
-    totalNodes: 1 + nodeNames.length,
+    totalNodes: 1 + nodes.length,
     timestamp: new Date().toISOString(),
   };
 }
