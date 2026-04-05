@@ -11,6 +11,7 @@ import { execSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 
 import { Identity, Ok, Err, resolveHome } from '../types';
+import { PROTOCOL_MD } from './wire';
 import type { Result } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -236,7 +237,18 @@ export async function identify(
   const tmuxResult = setTmuxEnvIdentity(writeResult.value);
   if (!tmuxResult.ok) {
     // Non-fatal: identity was written but tmux env couldn't be set
-    // Still return success since the identity file is the primary store
+  }
+
+  // Ensure node inbox exists
+  const nodeDir = join(homeResult.value, 'nodes', name, 'inbox');
+  await mkdir(nodeDir, { recursive: true });
+
+  // Drop PROTOCOL.md (idempotent -- agents read this to learn tmesh conventions)
+  const protocolPath = join(homeResult.value, 'PROTOCOL.md');
+  try {
+    await access(protocolPath);
+  } catch {
+    await writeFile(protocolPath, PROTOCOL_MD, 'utf-8');
   }
 
   return writeResult;
