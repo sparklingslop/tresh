@@ -1,90 +1,82 @@
-# tmesh demo -- two agents exchanging signals
+# tmesh demo -- two agents in split panes exchanging signals
 # Recorded with vhs (https://github.com/charmbracelet/vhs)
 
 Output assets/demo.gif
 
 Set Shell "bash"
-Set FontSize 15
-Set Width 960
-Set Height 540
-Set Padding 16
+Set FontSize 14
+Set Width 1100
+Set Height 550
+Set Padding 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 35ms
+Set TypingSpeed 30ms
 
-# Seed demo state (hidden -- runs before recording starts)
+# Launch the demo orchestrator (sets up tmux + attaches)
 Hide
-Type "bash scripts/demo-setup.sh /tmp/tmesh-demo"
+Type "bash scripts/demo-record.sh"
 Enter
-Sleep 500ms
-Type "export TMESH_HOME=/tmp/tmesh-demo"
-Enter
-Sleep 200ms
-Type "alias tmesh='TMESH_HOME=/tmp/tmesh-demo bun run src/cli/index.ts'"
-Enter
-Sleep 200ms
-Type "clear"
-Enter
-Sleep 500ms
+Sleep 5s
 Show
 
-# -- Recording starts --
+# --- Both panes now visible: alpha (left) | beta (right) ---
+Sleep 1.5s
 
-# Show existing conversation
-Type "# alpha checks the conversation so far"
-Enter
-Sleep 800ms
-
-Type "TMESH_IDENTITY=alpha tmesh log"
+# Alpha shows conversation history (left pane is focused)
+Type "tmesh log"
 Enter
 Sleep 2.5s
 
-# Alpha sends a new message
-Type "# alpha sends a deploy notification"
+# Alpha sends a message to beta
+Type "tmesh send beta 'all 421 tests pass. ready to merge'"
 Enter
+Sleep 3s
+
+# Switch to beta (right pane)
+Ctrl+b
+Right
 Sleep 800ms
 
-Type "TMESH_IDENTITY=alpha tmesh send beta 'Deploy complete. Merging to main.'"
-Enter
-Sleep 2.5s
-
-# Switch to beta's perspective -- check inbox
-Type "# beta checks their inbox"
-Enter
-Sleep 800ms
-
-Type "TMESH_IDENTITY=beta tmesh log --inbox"
+# Beta checks inbox
+Type "tmesh log --inbox"
 Enter
 Sleep 2.5s
 
 # Beta replies
-Type "# beta replies"
-Enter
-Sleep 800ms
-
-Type "TMESH_IDENTITY=beta tmesh send alpha 'LGTM. Ship it.'"
-Enter
-Sleep 2.5s
-
-# Alpha broadcasts to the whole mesh
-Type "# alpha broadcasts to everyone"
-Enter
-Sleep 800ms
-
-Type "TMESH_IDENTITY=alpha tmesh send '*' 'v1.0 released.'"
-Enter
-Sleep 2.5s
-
-# Show the full conversation from alpha's view
-Type "# the full conversation log"
-Enter
-Sleep 800ms
-
-Type "TMESH_IDENTITY=alpha tmesh log"
+Type "tmesh send alpha 'LGTM. ship it'"
 Enter
 Sleep 3s
 
-# Closing
-Sleep 1s
-Type "# zero infrastructure. just tmux."
+# Switch back to alpha
+Ctrl+b
+Left
+Sleep 800ms
+
+# Alpha sees full conversation
+Type "tmesh log"
 Enter
 Sleep 3s
+
+# Alpha broadcasts
+Type "tmesh send '*' 'v1.0 released'"
+Enter
+Sleep 3s
+
+# Switch to beta to see broadcast arrived
+Ctrl+b
+Right
+Sleep 800ms
+
+Type "tmesh log --inbox"
+Enter
+Sleep 3s
+
+# Hold final frame
+Sleep 2s
+
+# Cleanup
+Hide
+Ctrl+b
+Type ":"
+Type "kill-session"
+Enter
+Sleep 500ms
