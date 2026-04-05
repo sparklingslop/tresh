@@ -16,6 +16,11 @@ export type { CommandHandler } from './registry';
 import './commands/ls';
 import './commands/who';
 import './commands/identify';
+// Commands loaded in Phase 2:
+import './commands/send';
+import './commands/inbox';
+import './commands/read';
+import './commands/ack';
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -90,6 +95,10 @@ Commands:
   ls          List all tmesh nodes (tmux sessions)
   who         Show identity of current session
   identify    Set identity for current session
+  send        Send a signal to a specific node
+  inbox       List pending signals in the inbox
+  read        Read a specific signal by ID
+  ack         Acknowledge (delete) a signal
   help        Show this help message
 
 Options:
