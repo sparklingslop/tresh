@@ -34,15 +34,10 @@ import { appendOutbound } from '../../core/conversation';
 registerCommand('send', async (args, flags) => {
   const isPing = flags.get('ping') === true;
 
-  // --ping requires only target
   if (!isPing && args.length < 2) {
-    if (args.length === 1 && !isPing) {
-      process.stderr.write('Usage: tmesh send <target> "message" [--type TYPE] [--channel CH] [--ttl N]\n');
-      process.stderr.write('       tmesh send <target> --ping\n');
-      process.stderr.write('       tmesh send * "message"          (broadcast)\n');
-      return 1;
-    }
     process.stderr.write('Usage: tmesh send <target> "message" [--type TYPE] [--channel CH] [--ttl N]\n');
+    process.stderr.write('       tmesh send <target> --ping\n');
+    process.stderr.write('       tmesh send * "message"          (broadcast)\n');
     return 1;
   }
 
@@ -193,14 +188,15 @@ async function sendBroadcast(
   }
 
   const nodes = await listNodes(home);
-  let delivered = 0;
+  const targets = nodes.filter((n) => n !== sender);
 
-  for (const node of nodes) {
-    if (node === sender) continue;
-    const targetHome = `${home}/nodes/${node}`;
-    const result = await deliverSignal(signalResult.value, targetHome);
-    if (result.ok) delivered++;
-  }
+  const results = await Promise.all(
+    targets.map(async (node) => {
+      const result = await deliverSignal(signalResult.value, `${home}/nodes/${node}`);
+      return result.ok ? 1 as number : 0 as number;
+    }),
+  );
+  const delivered = results.reduce((a, b) => a + b, 0);
 
   // Append to sender's conversation log
   const senderNodeHome = resolveNodeHome(sender, home);

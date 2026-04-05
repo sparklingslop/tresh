@@ -13,8 +13,7 @@ import { registerCommand } from '../registry';
 import { identify } from '../../core/identity';
 import { initSession } from '../../core/init';
 import { validateSessionTarget } from '../../core/inject';
-
-const IDENTITY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
+import { resolveTmeshBin, isValidIdentity } from '../util';
 
 registerCommand('join', async (args, _flags) => {
   if (args.length === 0) {
@@ -33,13 +32,12 @@ registerCommand('join', async (args, _flags) => {
       return 1;
     }
 
-    if (!IDENTITY_PATTERN.test(identity)) {
+    if (!isValidIdentity(identity)) {
       process.stderr.write(`Error: Invalid identity: "${identity}"\n`);
       return 1;
     }
 
-    const tmeshBin = process.argv[1] ?? 'tmesh';
-    const result = await initSession(session, identity, tmeshBin);
+    const result = await initSession(session, identity, resolveTmeshBin());
     if (!result.ok) {
       process.stderr.write(`Error: ${result.error.message}\n`);
       return 1;
@@ -52,7 +50,7 @@ registerCommand('join', async (args, _flags) => {
   // Single-arg form: identify this session
   const name = args[0]!;
 
-  if (!IDENTITY_PATTERN.test(name)) {
+  if (!isValidIdentity(name)) {
     process.stderr.write(
       `Error: Invalid identity: "${name}". Must start with alphanumeric, contain only alphanumeric, dots, hyphens, underscores.\n`,
     );

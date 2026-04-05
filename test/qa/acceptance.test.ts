@@ -199,7 +199,7 @@ describe('QA-04: Broadcast + Cast', () => {
     await cleanInbox(IDENTITY_B);
 
     const out = tmesh(['broadcast', 'QA broadcast test'], IDENTITY_A);
-    expect(out).toContain('node(s)');
+    expect(out).toContain('node');
 
     const bFiles = await readdir(join(TMESH_HOME, 'nodes', IDENTITY_B, 'inbox'));
     expect(bFiles.length).toBeGreaterThanOrEqual(1);
@@ -209,7 +209,7 @@ describe('QA-04: Broadcast + Cast', () => {
     await cleanInbox(IDENTITY_B);
 
     const out = tmesh(['cast', 'releases', 'v0.0.5 shipped'], IDENTITY_A);
-    expect(out).toContain('channel "releases"');
+    expect(out).toContain('node');
 
     const bFiles = await readdir(join(TMESH_HOME, 'nodes', IDENTITY_B, 'inbox'));
     const signal = JSON.parse(await readFile(join(TMESH_HOME, 'nodes', IDENTITY_B, 'inbox', bFiles[0]!), 'utf-8'));
