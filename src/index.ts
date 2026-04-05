@@ -98,6 +98,18 @@ export {
   buildPeekCommand,
 } from './core/inject';
 
+// Conversation log
+export {
+  appendOutbound,
+  appendInbound,
+  readLog,
+} from './core/conversation';
+
+export type {
+  OutboundEntry,
+  InboundEntry,
+} from './core/conversation';
+
 // Wire format (agent-to-agent protocol)
 export {
   formatWireMessage,

@@ -15,6 +15,8 @@ import { notifyNode } from '../../core/notify';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
 import { formatOutbound } from '../../core/display';
+import { appendOutbound } from '../../core/conversation';
+import { resolveNodeHome } from '../../core/identity';
 
 registerCommand('send', async (args, flags) => {
   if (args.length < 2) {
@@ -65,6 +67,14 @@ registerCommand('send', async (args, flags) => {
 
   // Notify target session via tmux display-message (best-effort)
   await notifyNode(target, sender, signalType, content);
+
+  // Append to sender's conversation log
+  const senderNodeHome = resolveNodeHome(sender, home);
+  await appendOutbound(senderNodeHome, {
+    target,
+    content,
+    timestamp: signalResult.value.timestamp,
+  });
 
   process.stdout.write(formatOutbound({
     target,

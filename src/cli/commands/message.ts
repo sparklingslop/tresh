@@ -29,6 +29,8 @@ import { execFileSync } from 'node:child_process';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
 import { formatOutbound } from '../../core/display';
+import { appendOutbound } from '../../core/conversation';
+import { resolveNodeHome } from '../../core/identity';
 
 registerCommand('message', async (args, flags) => {
   if (args.length < 2) {
@@ -101,6 +103,10 @@ registerCommand('message', async (args, flags) => {
       execFileSync(notifyCmd[0]!, notifyCmd.slice(1) as string[], { stdio: 'pipe', timeout: 3000 });
     } catch { /* best-effort */ }
   }
+
+  // Append to sender's conversation log
+  const senderNodeHome = resolveNodeHome(sender, home);
+  await appendOutbound(senderNodeHome, { target, content, timestamp: signal.timestamp });
 
   // Display outbound message on sender side
   const status = injected ? 'delivered + injected' : 'delivered (offline)';
