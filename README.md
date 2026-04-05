@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.3-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.4-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-263%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-276%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -38,7 +38,7 @@ await mesh.send('nano-cortex', {
 await mesh.broadcast({
   type: 'event',
   channel: 'deploys',
-  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.3' }),
+  content: JSON.stringify({ repo: 'tmesh', version: 'v0.0.4' }),
 });
 
 // Watch inbox for incoming signals
@@ -51,23 +51,26 @@ for await (const signal of mesh.watch()) {
 ### CLI
 
 ```bash
-# Install
-bun add tmesh
-
 # Claim an identity on the mesh
-tmesh identify my-agent
+TMESH_IDENTITY=my-agent tmesh identify my-agent
 
 # See what's running
 tmesh ls
 
-# Send a message
-tmesh send nano-cortex "Deploy complete"
+# Send a message (delivers file + tmux status bar notification)
+TMESH_IDENTITY=my-agent tmesh send nano-cortex "Deploy complete"
 
-# Watch incoming signals
-tmesh watch
+# Watch incoming signals in real-time
+TMESH_IDENTITY=my-agent tmesh watch
+
+# Or start a watch pane in any tmux session
+tmux split-window -v -l 6 "TMESH_IDENTITY=my-agent tmesh watch"
 
 # See the full topology
 tmesh topology
+
+# Visual dashboard (requires gum)
+tmesh viz
 ```
 
 ## Why tmux?
@@ -429,27 +432,23 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.0.3
+## What's in 0.0.4
 
-Phases 1-5 complete: Discovery, Transport, Full CLI, Library API, and Direct Injection.
+All 5 implementation phases complete. Real-time bidirectional communication verified.
 
 **Shipped:**
-- 14 CLI commands: `ls`, `who`, `identify`, `send`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`, `inject`, `peek`
-- `createTmesh()` factory -- the primary library API with send, broadcast, discover, inbox, watch, ack, clean, inject, peek
-- Direct injection via `tmux send-keys` with hardened shell escaping (Layer 1)
-- Screen capture via `tmux capture-pane` (Layer 1)
-- File-based signal transport with atomic writes (Layer 2)
-- Inbox watcher with `fs.watch` + polling fallback and `AbortSignal` support
-- TTL-based signal expiry and cleanup
-- Standalone binary via `bun build --compile`
+- 15 CLI commands: `ls`, `who`, `identify`, `send`, `broadcast`, `cast`, `inbox`, `read`, `ack`, `watch`, `ping`, `topology`, `inject`, `peek`, `viz`
+- `createTmesh()` factory -- the primary library API
+- Per-session identity via `TMESH_IDENTITY` env var (tmux set-environment)
+- Shared-home model: all nodes share `~/.tmesh/`, per-identity inboxes at `~/.tmesh/nodes/{identity}/inbox/`
+- Real-time signal delivery: file write + tmux `display-message` notification
+- `tmesh watch` -- live signal stream via `fs.watch` (run in a tmux split pane)
+- `tmesh viz` -- gum-powered visual mesh dashboard
+- Direct injection (`inject`) and screen capture (`peek`) with hardened shell escaping
+- File-based signal transport with atomic writes, TTL expiry, ULID ordering
 - Security: `execFileSync` (no shell), input validation, session target whitelisting
-- Branded types (`SessionName`, `Identity`, `Ulid`) with `Result<T, E>` monad
-- Monotonic ULID generation (zero-dep, Crockford base32)
-- 263+ tests, 682+ assertions
-- Zero production dependencies
-
-**Next (Phase 6):**
-- npm publish + GitHub release
+- Branded types, `Result<T, E>` monad, zero production dependencies
+- 276+ tests, 712+ assertions
 
 ## Comparison with Alternatives
 

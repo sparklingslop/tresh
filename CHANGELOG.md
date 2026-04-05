@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.4] - 2026-04-05
+
+### Fixed
+
+- **Inbox routing**: Nodes now read from `{home}/nodes/{identity}/inbox/` where `send` actually delivers signals. Previously `inbox`/`read`/`ack`/`watch` read from the root `{home}/inbox/` which was never written to by other nodes.
+- **Per-session identity**: `resolveEffectiveIdentity()` checks `TMESH_IDENTITY` env var first (per-session via `tmux set-environment`), then falls back to the shared identity file. Prevents identity collision when multiple sessions share `~/.tmesh`.
+
+### Added
+
+- **Tmux notifications**: `send` now triggers a `tmux display-message` on the target session's status bar. Non-invasive (doesn't interrupt the running process). Best-effort -- signal delivery works even if notification fails.
+- **CLI: viz**: `tmesh viz` renders a gum-powered visual mesh dashboard. `--json` for raw data output. Falls back to JSON if gum/jq not installed.
+- **Viz data collector**: `collectVizData()` gathers all mesh state into a single JSON blob.
+- **Jenga-tower logo**: New SVG logo with stacked letter blocks in the Sparkling Slop palette (cyan, purple, pink, lime, amber). Animated signal pulses, dot grid background.
+
+### Verified
+
+- Real-time bidirectional communication between tmesh-hq and nano-autoevolve sessions using `tmesh watch` in a tmux split pane + `tmesh send` with tmux notifications.
+
+### Architecture
+
+- 276+ tests, 712+ assertions
+- 15 CLI commands fully operational
+
 ## [0.0.3] - 2026-04-05
 
 ### Added
@@ -71,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 139+ tests, 481+ assertions
 - Bun runtime and test runner
 
+[0.0.4]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.4
 [0.0.3]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.3
 [0.0.2]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.2
 [0.0.1]: https://github.com/sparklingslop/tmesh/releases/tag/v0.0.1
