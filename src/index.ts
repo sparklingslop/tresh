@@ -53,6 +53,10 @@ export type {
   CreateSignalInput,
 } from './core/signal';
 
+// Mesh factory (Phase 4 -- primary API)
+export { createTmesh } from './core/mesh';
+export type { Tmesh, TmeshOptions, SendOptions, BroadcastOptions } from './core/mesh';
+
 // Nodes
 export {
   listNodes,

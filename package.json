@@ -1,6 +1,6 @@
 {
   "name": "tmesh",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "tmux-native agent mesh. Zero infrastructure inter-session communication.",
   "type": "module",
   "main": "src/index.ts",
