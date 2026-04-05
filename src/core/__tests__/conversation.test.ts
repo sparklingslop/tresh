@@ -73,6 +73,22 @@ describe('appendInbound', () => {
     expect(log).toContain('alice');
     expect(log).toContain('hello from alice');
   });
+
+  test('appends <-- line with channel', async () => {
+    const nodeHome = join(tempDir, 'nodes', 'bob');
+    await mkdir(nodeHome, { recursive: true });
+
+    await appendInbound(nodeHome, {
+      sender: 'alice',
+      content: 'v1 shipped',
+      timestamp: '2026-04-05T14:30:00.000Z',
+      type: 'event',
+      channel: 'deploys',
+    });
+
+    const log = await readFile(join(nodeHome, 'conversation.log'), 'utf-8');
+    expect(log).toContain('#deploys');
+  });
 });
 
 describe('readLog', () => {

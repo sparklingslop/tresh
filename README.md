@@ -5,10 +5,10 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.7-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.8-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
-  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-403%2B%20passing-brightgreen" alt="tests"></a>
+  <a href="https://github.com/sparklingslop/tmesh/actions"><img src="https://img.shields.io/badge/tests-421%2B%20passing-brightgreen" alt="tests"></a>
   <a href="https://github.com/sparklingslop/tmesh"><img src="https://img.shields.io/badge/deps-0-orange" alt="zero dependencies"></a>
 </p>
 
@@ -17,6 +17,30 @@
 tmesh is a zero-infrastructure communication layer for AI coding agents. No broker. No cloud. No API keys. Just tmux sessions and filesystem signals.
 
 Works with Claude Code, Cursor, Aider, Windsurf, or any process in a tmux pane.
+
+## Install
+
+### Standalone binary (recommended)
+
+Download from [GitHub Releases](https://github.com/sparklingslop/tmesh/releases):
+
+```bash
+# macOS (Apple Silicon + Intel)
+curl -L https://github.com/sparklingslop/tmesh/releases/latest/download/tmesh-darwin -o tmesh
+chmod +x tmesh
+sudo mv tmesh /usr/local/bin/
+
+# One-time setup
+tmesh setup
+```
+
+### From source (requires Bun)
+
+```bash
+git clone https://github.com/sparklingslop/tmesh.git
+cd tmesh && bun install
+bun run tmesh setup
+```
 
 ## Quick Start
 
@@ -246,10 +270,18 @@ Flags: `--status` (show current state), `--uninstall` (remove hooks)
 
 ### `tmesh join <identity>`
 
-Join the mesh. Sets this session's identity, creates inbox, writes PROTOCOL.md.
+Join the mesh. Sets this session's identity, creates inbox, writes PROTOCOL.md, and auto-opens a watch pane at the bottom of your terminal showing live conversation.
 
 ```
 $ tmesh join nano-cortex
+Joined mesh as: nano-cortex
+Watch pane: opened (%42)
+```
+
+The watch pane is a small tmux split (6 lines) running `tmesh log --follow`. It shows incoming and outgoing messages in real-time. Close it with Ctrl-C or use `--no-watch` to skip:
+
+```
+$ tmesh join nano-cortex --no-watch
 Joined mesh as: nano-cortex
 ```
 
@@ -292,7 +324,7 @@ $ tmesh log --read 01ABC123
 $ tmesh log --ack 01ABC123
 ```
 
-Flags: `--follow`/`-f` (live tail), `--tail <n>`, `--peer <name>`, `--inbox`, `--read <id>`, `--ack <id>`
+Flags: `--follow`/`-f` (live tail), `--tail <n>`, `--peer <name>`, `--channel <name>`, `--inbox`, `--read <id>`, `--ack <id>`
 
 ### `tmesh who`
 
@@ -417,19 +449,19 @@ import type {
 } from 'tmesh';
 ```
 
-## What's in 0.0.7
+## What's in 0.0.8
 
-All implementation phases complete. CLI consolidated from 22 commands to 6 essential commands.
+**0.0.8 -- Conversation Log + Auto-Watch Pane:**
+- **Channel in log**: `#channel` now appears in conversation log lines (when not default)
+- **Structured filtering**: `--peer` and `--channel` use parsed log lines, not substring matching
+- **Log rotation**: conversation.log auto-rotates at 1MB (3 rotations)
+- **Auto-watch pane**: `tmesh join` automatically opens a 6-line tmux pane tailing the conversation log. Opt-out: `--no-watch`. Detects existing panes (no duplicates).
+- **Standalone binary**: macOS binary in GitHub releases (57MB, zero runtime deps)
+- 421+ tests, 998+ assertions, zero production dependencies
 
 **0.0.7 -- Command Consolidation:**
 - **6 essential commands**: `setup`, `join`, `send`, `log`, `who`, `peek`
-- **`tmesh setup`**: one-time global install (home dir + tmux hooks)
-- **`tmesh join`**: replaces `identify` + `init` with single join flow
-- **`tmesh send`**: unified messaging -- direct, broadcast (`*`), ping (`--ping`), channels, @-mentions
-- **`tmesh log`**: unified view -- conversation history, live tail (`--follow`), inbox (`--inbox`), read/ack signals
-- **`tmesh who`**: unified status -- nodes, all sessions (`--all`), topology (`--topology`), viz (`--viz`)
 - All 22 old commands still callable (hidden from help) for backwards compatibility
-- 403+ tests, 960+ assertions, zero production dependencies
 
 **0.0.6 -- Conversation Log + Wire Format:**
 - Conversation log: append-only per-node log with `-->` and `<--` directions

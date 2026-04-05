@@ -20,6 +20,7 @@ import { resolveMyNodeHome } from '../../core/identity';
 import { readLog } from '../../core/conversation';
 import { listInbox, readSignalFile, ackSignal } from '../../core/transport';
 import { formatInbound } from '../../core/display';
+import { parseLogLine } from '../../core/display';
 import { resolveHome } from '../../types';
 
 registerCommand('log', async (_args, flags) => {
@@ -54,6 +55,7 @@ registerCommand('log', async (_args, flags) => {
   const tailRaw = flags.get('tail');
   const tail = typeof tailRaw === 'string' ? parseInt(tailRaw, 10) : undefined;
   const peerFilter = flags.get('peer') as string | undefined;
+  const channelFilter = flags.get('channel') as string | undefined;
 
   // Show existing log
   const lines = await readLog(nodeHome.value, tail !== undefined ? { tail } : (follow ? { tail: 20 } : undefined));
@@ -64,7 +66,7 @@ registerCommand('log', async (_args, flags) => {
   }
 
   for (const line of lines) {
-    if (peerFilter !== undefined && !line.includes(peerFilter)) continue;
+    if (!matchesFilter(line, peerFilter, channelFilter)) continue;
     process.stdout.write(line + '\n');
   }
 
@@ -91,7 +93,7 @@ registerCommand('log', async (_args, flags) => {
         readLog(nodeHome.value).then((allLines) => {
           const newLines = allLines.slice(lastLineCount);
           for (const line of newLines) {
-            if (peerFilter !== undefined && !line.includes(peerFilter)) continue;
+            if (!matchesFilter(line, peerFilter, channelFilter)) continue;
             process.stdout.write(line + '\n');
           }
           lastLineCount = allLines.length;
@@ -204,4 +206,20 @@ async function acknowledgeSignal(signalId: string, nodeHome: string): Promise<nu
 
   process.stdout.write(`Acked ${signalId}\n`);
   return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Structured filter
+// ---------------------------------------------------------------------------
+
+function matchesFilter(line: string, peer?: string, channel?: string): boolean {
+  if (peer === undefined && channel === undefined) return true;
+
+  const parsed = parseLogLine(line);
+  if (parsed === null) return false;
+
+  if (peer !== undefined && parsed.peer !== peer) return false;
+  if (channel !== undefined && parsed.channel !== channel) return false;
+
+  return true;
 }
