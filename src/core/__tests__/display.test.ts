@@ -6,52 +6,71 @@ import { describe, test, expect } from 'bun:test';
 import { formatOutbound, formatInbound } from '../display';
 
 describe('formatOutbound', () => {
-  test('shows arrow, target, timestamp, and content', () => {
+  test('uses [tmesh] prefix with timestamp', () => {
     const out = formatOutbound({
-      target: 'nano-research',
-      content: 'Hello from tmesh-hq',
-      timestamp: '2026-04-05T14:19:12.000Z',
-      status: 'delivered + injected',
+      target: 'nano-research', content: 'hello',
+      timestamp: '2026-04-05T14:19:12.000Z', status: 'delivered',
     });
-    expect(out).toContain('-->');
-    expect(out).toContain('nano-research');
-    expect(out).toContain('2026-04-05 14:19:12');
-    expect(out).toContain('Hello from tmesh-hq');
-    expect(out).toContain('delivered + injected');
+    expect(out).toMatch(/^\[tmesh 2026-04-05 14:19:12\]/);
   });
 
-  test('handles offline status', () => {
+  test('shows --> arrow and target', () => {
     const out = formatOutbound({
-      target: 'bob',
-      content: 'hello',
-      timestamp: '2026-04-05T14:00:00.000Z',
-      status: 'delivered (offline)',
+      target: 'nano-research', content: 'hello',
+      timestamp: '2026-04-05T14:19:12.000Z', status: 'delivered',
     });
-    expect(out).toContain('offline');
+    expect(out).toContain('--> nano-research:');
+  });
+
+  test('includes content and status', () => {
+    const out = formatOutbound({
+      target: 'bob', content: 'test message',
+      timestamp: '2026-04-05T14:00:00.000Z', status: 'delivered + injected',
+    });
+    expect(out).toContain('test message');
+    expect(out).toContain('(delivered + injected)');
+  });
+
+  test('is single line', () => {
+    const out = formatOutbound({
+      target: 'bob', content: 'hello',
+      timestamp: '2026-04-05T14:00:00.000Z', status: 'ok',
+    });
+    expect(out).not.toContain('\n');
   });
 });
 
 describe('formatInbound', () => {
-  test('shows arrow, sender, timestamp, and content', () => {
+  test('uses [tmesh] prefix with timestamp', () => {
     const out = formatInbound({
-      sender: 'tmesh-hq',
-      content: 'Status check',
-      timestamp: '2026-04-05T14:19:12.000Z',
-      type: 'command',
+      sender: 'tmesh-hq', content: 'hello',
+      timestamp: '2026-04-05T14:19:12.000Z', type: 'message',
     });
-    expect(out).toContain('<--');
-    expect(out).toContain('tmesh-hq');
-    expect(out).toContain('2026-04-05 14:19:12');
-    expect(out).toContain('Status check');
+    expect(out).toMatch(/^\[tmesh 2026-04-05 14:19:12\]/);
   });
 
-  test('shows signal type', () => {
+  test('shows <-- arrow and sender', () => {
     const out = formatInbound({
-      sender: 'alice',
-      content: 'deploy',
-      timestamp: '2026-04-05T14:00:00.000Z',
-      type: 'event',
+      sender: 'tmesh-hq', content: 'hello',
+      timestamp: '2026-04-05T14:19:12.000Z', type: 'command',
     });
-    expect(out).toContain('event');
+    expect(out).toContain('<-- tmesh-hq');
+  });
+
+  test('includes type and content', () => {
+    const out = formatInbound({
+      sender: 'alice', content: 'deploy now',
+      timestamp: '2026-04-05T14:00:00.000Z', type: 'event',
+    });
+    expect(out).toContain('[event]');
+    expect(out).toContain('deploy now');
+  });
+
+  test('is single line', () => {
+    const out = formatInbound({
+      sender: 'alice', content: 'hi',
+      timestamp: '2026-04-05T14:00:00.000Z', type: 'message',
+    });
+    expect(out).not.toContain('\n');
   });
 });
