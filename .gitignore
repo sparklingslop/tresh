@@ -1,6 +1,11 @@
 node_modules/
 dist/
 .env
+.env.*
 *.log
 *.tsbuildinfo
 .me/
+.DS_Store
+*.swp
+*.swo
+*~

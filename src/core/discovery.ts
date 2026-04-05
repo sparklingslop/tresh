@@ -37,7 +37,7 @@ export type ParsedPane = {
 // Parsers
 // ---------------------------------------------------------------------------
 
-const SESSION_RE = /^([^:]+):\s+\d+\s+windows?\s+\(created\s+(.+)\)$/;
+const SESSION_RE = /^([^:]+):\s+\d+\s+windows?\s+\(created\s+(.+?)\)/;
 
 /**
  * Parse the output of `tmux list-sessions` into structured data.
@@ -161,7 +161,7 @@ export function discoverNodes(
  */
 export function listSessions(): Result<ParsedSession[]> {
   try {
-    const output = execSync('tmux list-sessions', { encoding: 'utf-8' });
+    const output = execSync('tmux list-sessions 2>/dev/null', { encoding: 'utf-8' });
     return parseTmuxSessions(output);
   } catch {
     return Ok([]);
@@ -174,7 +174,7 @@ export function listSessions(): Result<ParsedSession[]> {
 export function listPanes(): Result<ParsedPane[]> {
   try {
     const output = execSync(
-      "tmux list-panes -a -F '#{session_name}\t#{pane_id}\t#{pane_pid}\t#{pane_current_command}\t#{pane_active}'",
+      "tmux list-panes -a -F '#{session_name}\t#{pane_id}\t#{pane_pid}\t#{pane_current_command}\t#{pane_active}' 2>/dev/null",
       { encoding: 'utf-8' },
     );
     return parseTmuxPanes(output);
@@ -189,7 +189,7 @@ export function listPanes(): Result<ParsedPane[]> {
 export function getSessionEnvIdentity(sessionName: string): string | null {
   try {
     const output = execSync(
-      `tmux show-environment -t ${sessionName} TMESH_IDENTITY`,
+      `tmux show-environment -t ${sessionName} TMESH_IDENTITY 2>/dev/null`,
       { encoding: 'utf-8' },
     ).trim();
     // Format: TMESH_IDENTITY=value  or  -TMESH_IDENTITY (if unset)
