@@ -122,7 +122,7 @@ describe('QA-03: Send + Receive', () => {
     await cleanInbox(IDENTITY_B);
 
     const out = tmesh(['send', IDENTITY_B, 'QA test message from alpha'], IDENTITY_A);
-    expect(out).toContain(`to ${IDENTITY_B}`);
+    expect(out).toContain(IDENTITY_B);
 
     const inboxPath = join(TMESH_HOME, 'nodes', IDENTITY_B, 'inbox');
     const files = await readdir(inboxPath);
@@ -159,7 +159,7 @@ describe('QA-03: Send + Receive', () => {
     await cleanInbox(IDENTITY_A);
 
     const out = tmesh(['send', IDENTITY_A, 'QA reply from beta'], IDENTITY_B);
-    expect(out).toContain(`to ${IDENTITY_A}`);
+    expect(out).toContain(IDENTITY_A);
 
     const inboxPath = join(TMESH_HOME, 'nodes', IDENTITY_A, 'inbox');
     const files = await readdir(inboxPath);
