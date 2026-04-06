@@ -29,7 +29,7 @@ import { execFileSync } from 'node:child_process';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
 import { formatOutbound } from '../../core/display';
-import { appendOutbound } from '../../core/conversation';
+import { appendOutbound, appendInbound } from '../../core/conversation';
 
 registerCommand('send', async (args, flags) => {
   const isPing = flags.get('ping') === true;
@@ -140,6 +140,14 @@ async function sendDirect(
   const senderNodeHome = resolveNodeHome(sender, home);
   await appendOutbound(senderNodeHome, {
     target, content, timestamp: signal.timestamp,
+    channel: channel !== 'default' ? channel : undefined,
+  });
+
+  // Append to receiver's conversation log (inbound)
+  const targetNodeHome = resolveNodeHome(target, home);
+  await appendInbound(targetNodeHome, {
+    sender, content, timestamp: signal.timestamp,
+    type: signalType,
     channel: channel !== 'default' ? channel : undefined,
   });
 
