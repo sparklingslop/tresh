@@ -1,6 +1,6 @@
-# tmesh -- real work + real coordination demo
-# Alice builds pong frontend, Bob builds game engine.
-# They coordinate via tmesh when they need to align on the API.
+# tmesh -- real Claude Code agents building a Pong game together
+# Split tmux panes, real work, real coordination via tmesh.
+# Recorded AFTER the conversation happened -- shows the actual tmux panes.
 
 Output assets/demo-orchestration.gif
 Set Shell "zsh"
@@ -12,44 +12,95 @@ Set Padding 5
 Set TypingSpeed 0
 Set Framerate 8
 
-# ── Setup (hidden) ──────────────────────────────────────────────────
-Hide
-Type "bash /tmp/tmesh-demo-setup.sh"
-Enter
-Sleep 12s
-Show
-
-# ── Attach to split tmux ────────────────────────────────────────────
+# Attach to the live demo session (already has both agents finished)
 Type "tmux attach -t demo"
 Enter
-Sleep 2s
+Sleep 5s
 
-# ── Left pane: alice starts building frontend ────────────────────────
-Set TypingSpeed 20ms
-Type "bash /tmp/tmesh-demo-alice.sh"
-Set TypingSpeed 0
-Enter
-Sleep 8s
-
-# ── Switch to right pane: bob starts building engine ─────────────────
+# Show alice's pane -- scroll up to see the conversation
 Ctrl+b
-Sleep 300ms
-Right
+Sleep 200ms
+Left
 Sleep 1s
 
-Set TypingSpeed 20ms
-Type "bash /tmp/tmesh-demo-bob.sh"
-Set TypingSpeed 0
-Enter
-
-# ── Let them work and coordinate ─────────────────────────────────────
-# Bob codes the engine, alice codes the frontend.
-# Alice asks bob for the API, bob responds.
-# Both produce real files at /tmp/pong-game/
-Sleep 180s
-
-# ── Done ─────────────────────────────────────────────────────────────
+# Use tmux copy mode to scroll and show alice's work
 Ctrl+b
-Sleep 300ms
-Type "d"
+Sleep 200ms
+Type "["
+Sleep 500ms
+
+# Scroll up to see the full conversation
+Type "g"
 Sleep 3s
+
+# Scroll down slowly
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+
+# Exit copy mode
+Type "q"
+Sleep 1s
+
+# Switch to bob's pane
+Ctrl+b
+Sleep 200ms
+Right
+Sleep 2s
+
+# Scroll bob's pane
+Ctrl+b
+Sleep 200ms
+Type "["
+Sleep 500ms
+Type "g"
+Sleep 3s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+Down Down Down Down Down Down Down Down Down Down
+Sleep 2s
+
+Type "q"
+Sleep 1s
+
+# Detach
+Ctrl+b
+Sleep 200ms
+Type "d"
+Sleep 1s
+
+# Show the conversation logs side by side
+Type "echo ''"
+Enter
+Type "echo '  RESULT: Two Claude Code agents built a working Pong game'"
+Enter
+Type "echo ''"
+Enter
+Type "ls -la /tmp/pong-game/"
+Enter
+Sleep 3s
+Type "echo ''"
+Enter
+Type "echo '  CONVERSATION LOG (alice):'"
+Enter
+Type "cat ~/.tmesh/nodes/alice/conversation.log"
+Enter
+Sleep 5s
+Type "echo ''"
+Enter
+Type "echo '  Zero broker. Zero cloud. Zero API keys. Just tmux.'"
+Enter
+Sleep 5s
