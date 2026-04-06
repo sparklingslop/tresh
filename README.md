@@ -5,7 +5,7 @@
 <h3 align="center">Your AI agents are already running in tmux. Give them a mesh.</h3>
 
 <p align="center">
-  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.10-blue" alt="version"></a>
+  <a href="https://github.com/sparklingslop/tmesh/releases"><img src="https://img.shields.io/badge/version-0.0.11-blue" alt="version"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
   <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-Bun-f472b6" alt="bun"></a>
   <a href="https://github.com/sparklingslop/tmesh/actions/workflows/ci.yml"><img src="https://github.com/sparklingslop/tmesh/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -21,6 +21,12 @@
 tmesh is a zero-infrastructure communication layer for AI coding agents. No broker. No cloud. No API keys. Just tmux sessions and filesystem signals.
 
 Works with Claude Code, Cursor, Aider, Windsurf, or any process in a tmux pane.
+
+### Agent orchestration -- supervision, parallel tasks, safe injection
+
+<p align="center">
+  <img src="assets/demo-orchestration.gif" width="720" alt="tmesh agent orchestration -- two agents discovering, messaging, and supervising">
+</p>
 
 ### Two Claude Code agents self-coordinating
 
@@ -449,6 +455,59 @@ import {
 } from 'tmesh';
 ```
 
+### Agent Orchestration (new in 0.0.11)
+
+```typescript
+import {
+  // Pane management
+  spawnPane, killPane, isPaneDead, getPaneMode,
+  registerPane, resolvePane,
+  // Safety
+  safeSend, detectHumanTyping,
+  // Supervision
+  supervise,
+  // Task orchestration
+  runTask, runParallel, runChain,
+  // Synchronization
+  waitFor, signalWait,
+  // Agent definitions
+  discoverAgents,
+} from 'tmesh';
+
+// Safe send-keys with guards (dead pane, copy mode, human typing detection)
+safeSend('%42', 'Analyze the auth module', {
+  checkHumanTyping: true,
+  checkCopyMode: true,
+});
+
+// Supervise a worker pane (transparent -- worker doesn't know)
+const handle = supervise('%42', {
+  observeInterval: 5000,
+  completionPattern: /\$ $/,  // shell prompt = task done
+  onObserve: (content) => console.log('Worker output:', content.slice(-200)),
+  onComplete: () => console.log('Worker finished'),
+});
+await handle.done;
+
+// Execute tasks in parallel with concurrency limiting
+const results = await runParallel([
+  { pane: '%42', command: 'Implement login endpoint' },
+  { pane: '%43', command: 'Implement signup endpoint' },
+  { pane: '%44', command: 'Write auth middleware' },
+], { concurrency: 2 });
+
+// Chain tasks with output piping
+await runChain([
+  { pane: '%42', command: 'Analyze the codebase structure' },
+  { pane: '%43', command: 'Create implementation plan based on: {previous}' },
+  { pane: '%44', command: 'Implement the plan: {previous}' },
+]);
+
+// Discover agent definitions from markdown files
+const agents = await discoverAgents();
+// Reads ~/.tmesh/agents/*.md and .tmesh/agents/*.md
+```
+
 ### Types
 
 tmesh uses branded types for compile-time safety:
@@ -460,6 +519,19 @@ import type {
   SignalType, NodeStatus, Ulid, Result,
 } from 'tmesh';
 ```
+
+## What's in 0.0.11
+
+**0.0.11 -- Agent Orchestration Primitives:**
+- **Pane Registry**: Name-based pane addressing (`registerPane('worker', '%42')`, `resolvePane('worker')`)
+- **Pane Lifecycle**: Spawn, kill, health-check tmux panes (`spawnPane`, `killPane`, `isPaneDead`, `getPaneMode`)
+- **Synchronization**: Zero-polling tmux wait-for primitives (`waitFor(channel)`, `signalWait(channel)`)
+- **Output Streaming**: `pipe-pane` based continuous output capture with pattern matching
+- **Safety Layer**: Pre-flight guards for send-keys (dead pane, copy mode, human typing detection)
+- **Transparent Supervision**: Observe worker panes via `capture-pane` polling without the worker knowing
+- **Task Orchestration**: Single, parallel (concurrency-limited), and chain (output piping via `{previous}`) execution patterns
+- **Agent Definitions**: Markdown files with YAML frontmatter for declarative agent configuration
+- 674+ tests, 1574+ assertions, zero production dependencies
 
 ## What's in 0.0.8
 
