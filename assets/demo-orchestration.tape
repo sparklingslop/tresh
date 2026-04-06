@@ -1,86 +1,196 @@
-# tmesh agent orchestration demo
-# Two Claude Code sessions communicating via tmesh
+# tmesh -- real two-agent demo
+# Shows alice and bob exchanging messages via tmesh.
+# Each command shows which agent is acting.
 #
 # Record with: vhs assets/demo-orchestration.tape
 
 Output assets/demo-orchestration.gif
 Set Shell "zsh"
 Set FontSize 14
-Set Width 1200
-Set Height 700
+Set Width 1000
+Set Height 650
 Set Theme "Catppuccin Mocha"
-Set Padding 20
-Set TypingSpeed 50ms
+Set Padding 15
+Set TypingSpeed 30ms
 
-# -- Setup --
-Type "# tmesh -- agent orchestration demo"
+# ---------------------------------------------------------------------------
+# Setup (hidden)
+# ---------------------------------------------------------------------------
+Hide
+Type "cd /Users/jankothyson/Code/sparkling-slop/tmesh"
 Enter
-Sleep 500ms
-Type "# Two agents discover each other and exchange signals"
+Sleep 200ms
+Type "alias tm='bun run src/cli/index.ts'"
 Enter
-Sleep 1s
-
-# Create two tmux sessions
-Type "tmux new-session -d -s agent-alpha"
+Sleep 200ms
+# Clean up any previous state
+Type "tmux kill-session -t alice 2>/dev/null; tmux kill-session -t bob 2>/dev/null"
+Enter
+Sleep 200ms
+Type "rm -rf ~/.tmesh/nodes/alice ~/.tmesh/nodes/bob ~/.tmesh/conversation-alice.log ~/.tmesh/conversation-bob.log"
+Enter
+Sleep 200ms
+# Create two background tmux sessions
+Type "tmux new-session -d -s alice"
 Enter
 Sleep 300ms
-Type "tmux new-session -d -s agent-beta"
+Type "tmux new-session -d -s bob"
 Enter
 Sleep 300ms
+Show
 
-# Join mesh with identities
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts join agent-alpha alpha"
+# ---------------------------------------------------------------------------
+# Title
+# ---------------------------------------------------------------------------
+Type "echo ''"
 Enter
-Sleep 1s
+Type "echo '  tmesh -- two agents, one mesh, zero infrastructure'"
+Enter
+Type "echo '  ================================================'"
+Enter
+Type "echo ''"
+Enter
+Sleep 1500ms
 
-Type "TMESH_IDENTITY=beta bun run src/cli/index.ts join agent-beta beta"
+# ---------------------------------------------------------------------------
+# Phase 1: Bootstrap both sessions onto the mesh
+# ---------------------------------------------------------------------------
+Type "echo '--- Phase 1: Bootstrap alice and bob onto the mesh ---'"
 Enter
-Sleep 1s
+Sleep 800ms
 
-# Show who's on the mesh
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts who"
+Type "TMESH_IDENTITY=alice tm join alice alice --no-watch"
 Enter
-Sleep 2s
+Sleep 1500ms
 
-# Agent alpha sends a message to beta
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts send beta 'Hey beta, can you review the auth module?'"
+Type "TMESH_IDENTITY=bob tm join bob bob --no-watch"
 Enter
-Sleep 2s
+Sleep 1500ms
 
-# Check beta's inbox
-Type "TMESH_IDENTITY=beta bun run src/cli/index.ts log --inbox"
+# ---------------------------------------------------------------------------
+# Phase 2: Discovery -- who's on the mesh?
+# ---------------------------------------------------------------------------
+Type "echo ''"
 Enter
-Sleep 2s
+Type "echo '--- Phase 2: Who is on the mesh? ---'"
+Enter
+Sleep 800ms
 
-# Beta replies
-Type "TMESH_IDENTITY=beta bun run src/cli/index.ts send alpha 'On it. Found 2 issues in jwt validation.'"
+Type "TMESH_IDENTITY=alice tm who"
 Enter
-Sleep 2s
+Sleep 2500ms
 
-# Alpha checks conversation log
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts log"
+# ---------------------------------------------------------------------------
+# Phase 3: Alice sends a message to Bob
+# ---------------------------------------------------------------------------
+Type "echo ''"
 Enter
-Sleep 2s
+Type "echo '--- Phase 3: Alice sends a message to Bob ---'"
+Enter
+Sleep 800ms
 
-# Broadcast to all
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts send '*' 'Review complete. Merging to main.'"
+Type "TMESH_IDENTITY=alice tm send bob 'Hey Bob, can you review the auth module? I found a suspicious jwt.verify() call.'"
 Enter
-Sleep 2s
+Sleep 2500ms
 
-# Peek at beta's screen
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts peek agent-beta --lines 5"
+# ---------------------------------------------------------------------------
+# Phase 4: Bob checks his inbox and sees Alice's message
+# ---------------------------------------------------------------------------
+Type "echo ''"
 Enter
-Sleep 2s
+Type "echo '--- Phase 4: Bob checks inbox ---'"
+Enter
+Sleep 800ms
 
-# Show final mesh state
-Type "TMESH_IDENTITY=alpha bun run src/cli/index.ts who --topology"
+Type "TMESH_IDENTITY=bob tm log --inbox"
 Enter
-Sleep 3s
+Sleep 2500ms
 
-# Cleanup
-Type "tmux kill-session -t agent-alpha 2>/dev/null; tmux kill-session -t agent-beta 2>/dev/null"
+# ---------------------------------------------------------------------------
+# Phase 5: Bob replies
+# ---------------------------------------------------------------------------
+Type "echo ''"
 Enter
-Sleep 500ms
-Type "# Zero infrastructure. Zero dependencies. Just tmux."
+Type "echo '--- Phase 5: Bob replies ---'"
 Enter
-Sleep 2s
+Sleep 800ms
+
+Type "TMESH_IDENTITY=bob tm send alice 'Confirmed. The jwt.verify() is missing audience check. PR #47 incoming.'"
+Enter
+Sleep 2500ms
+
+# ---------------------------------------------------------------------------
+# Phase 6: Alice sees the full conversation
+# ---------------------------------------------------------------------------
+Type "echo ''"
+Enter
+Type "echo '--- Phase 6: Alice sees the conversation ---'"
+Enter
+Sleep 800ms
+
+Type "TMESH_IDENTITY=alice tm log"
+Enter
+Sleep 3000ms
+
+# ---------------------------------------------------------------------------
+# Phase 7: Alice peeks at Bob's tmux screen
+# ---------------------------------------------------------------------------
+Type "echo ''"
+Enter
+Type "echo '--- Phase 7: Alice peeks at Bobs screen (capture-pane) ---'"
+Enter
+Sleep 800ms
+
+Type "TMESH_IDENTITY=alice tm peek bob --lines 8"
+Enter
+Sleep 3000ms
+
+# ---------------------------------------------------------------------------
+# Phase 8: Broadcast to all nodes
+# ---------------------------------------------------------------------------
+Type "echo ''"
+Enter
+Type "echo '--- Phase 8: Alice broadcasts to all nodes ---'"
+Enter
+Sleep 800ms
+
+Type "TMESH_IDENTITY=alice tm send '*' 'Auth fix merged to main. All clear.'"
+Enter
+Sleep 2500ms
+
+# Bob sees the broadcast
+Type "TMESH_IDENTITY=bob tm log"
+Enter
+Sleep 3000ms
+
+# ---------------------------------------------------------------------------
+# Phase 9: Show topology
+# ---------------------------------------------------------------------------
+Type "echo ''"
+Enter
+Type "echo '--- Phase 9: Mesh topology ---'"
+Enter
+Sleep 800ms
+
+Type "TMESH_IDENTITY=alice tm who --topology"
+Enter
+Sleep 3000ms
+
+# ---------------------------------------------------------------------------
+# Cleanup & outro
+# ---------------------------------------------------------------------------
+Hide
+Type "tmux kill-session -t alice 2>/dev/null; tmux kill-session -t bob 2>/dev/null"
+Enter
+Sleep 200ms
+Show
+
+Type "echo ''"
+Enter
+Type "echo '  Zero broker. Zero cloud. Zero API keys. Just tmux.'"
+Enter
+Type "echo '  Works with Claude Code, Pi, Cursor, Aider, or any terminal agent.'"
+Enter
+Type "echo ''"
+Enter
+Sleep 4000ms
