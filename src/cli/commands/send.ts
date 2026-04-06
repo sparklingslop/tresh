@@ -144,12 +144,15 @@ async function sendDirect(
   });
 
   // Append to receiver's conversation log (inbound)
-  const targetNodeHome = resolveNodeHome(target, home);
-  await appendInbound(targetNodeHome, {
-    sender, content, timestamp: signal.timestamp,
-    type: signalType,
-    channel: channel !== 'default' ? channel : undefined,
-  });
+  // Only write if sender != target (avoid self-messaging artifacts)
+  if (sender !== target) {
+    const targetNodeHome = resolveNodeHome(target, home);
+    await appendInbound(targetNodeHome, {
+      sender, content, timestamp: signal.timestamp,
+      type: signalType,
+      channel: channel !== 'default' ? channel : undefined,
+    });
+  }
 
   // Also handle @-mentions in content (deliver to mentioned nodes too)
   const mentions = parseMentions(content);
