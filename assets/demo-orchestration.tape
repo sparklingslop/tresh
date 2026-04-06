@@ -1,106 +1,78 @@
-# tmesh -- real Claude Code agents building a Pong game together
-# Split tmux panes, real work, real coordination via tmesh.
-# Recorded AFTER the conversation happened -- shows the actual tmux panes.
+# tmesh -- LIVE split-pane Claude Code demo
+# Two agents building a Pong game, captured WHILE they work.
+# VHS attaches to tmux, launches agents, records them live.
 
 Output assets/demo-orchestration.gif
 Set Shell "zsh"
-Set FontSize 12
-Set Width 1400
-Set Height 750
+Set FontSize 11
+Set Width 1600
+Set Height 800
 Set Theme "Catppuccin Mocha"
 Set Padding 5
 Set TypingSpeed 0
-Set Framerate 8
+Set Framerate 6
 
-# Attach to the live demo session (already has both agents finished)
+# ── Setup: create tmux session with splits, join mesh (hidden) ──────
+Hide
+Type "cd /Users/jankothyson/Code/sparkling-slop/tmesh"
+Enter
+Sleep 300ms
+Type "tmux kill-session -t demo 2>/dev/null"
+Enter
+Sleep 300ms
+Type "rm -rf ~/.tmesh/nodes/alice ~/.tmesh/nodes/bob /tmp/pong-game && mkdir -p /tmp/pong-game"
+Enter
+Sleep 300ms
+
+# Create tmux session with horizontal split
+Type "tmux new-session -d -s demo -x 200 -y 50"
+Enter
+Sleep 300ms
+
+# Join alice on left pane
+Type "tmux send-keys -t demo:0.0 'export TMESH_IDENTITY=alice && cd /Users/jankothyson/Code/sparkling-slop/tmesh && bun run src/cli/index.ts join alice --no-watch && clear' Enter"
+Enter
+Sleep 4s
+
+# Split and join bob on right pane
+Type "tmux split-window -h -t demo"
+Enter
+Sleep 300ms
+Type "tmux send-keys -t demo:0.1 'export TMESH_IDENTITY=bob && cd /Users/jankothyson/Code/sparkling-slop/tmesh && bun run src/cli/index.ts join bob --no-watch && clear' Enter"
+Enter
+Sleep 4s
+Show
+
+# ── Attach to tmux -- NOW we see both panes ─────────────────────────
 Type "tmux attach -t demo"
 Enter
-Sleep 5s
+Sleep 2s
 
-# Show alice's pane -- scroll up to see the conversation
+# ── Left pane (alice): launch Claude Code ────────────────────────────
+Set TypingSpeed 15ms
+Type "bash /tmp/tmesh-demo-alice.sh"
+Set TypingSpeed 0
+Enter
+Sleep 8s
+
+# ── Switch to right pane (bob): launch Claude Code ──────────────────
 Ctrl+b
-Sleep 200ms
-Left
-Sleep 1s
-
-# Use tmux copy mode to scroll and show alice's work
-Ctrl+b
-Sleep 200ms
-Type "["
-Sleep 500ms
-
-# Scroll up to see the full conversation
-Type "g"
-Sleep 3s
-
-# Scroll down slowly
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-
-# Exit copy mode
-Type "q"
-Sleep 1s
-
-# Switch to bob's pane
-Ctrl+b
-Sleep 200ms
+Sleep 300ms
 Right
-Sleep 2s
-
-# Scroll bob's pane
-Ctrl+b
-Sleep 200ms
-Type "["
-Sleep 500ms
-Type "g"
-Sleep 3s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-Down Down Down Down Down Down Down Down Down Down
-Sleep 2s
-
-Type "q"
 Sleep 1s
 
-# Detach
+Set TypingSpeed 15ms
+Type "bash /tmp/tmesh-demo-bob.sh"
+Set TypingSpeed 0
+Enter
+
+# ── Record them working live for 3 minutes ──────────────────────────
+# Both Claude Code sessions are now visible side by side.
+# They will: build code, send tmesh messages, respond, coordinate.
+Sleep 180s
+
+# ── Detach ──────────────────────────────────────────────────────────
 Ctrl+b
 Sleep 200ms
 Type "d"
-Sleep 1s
-
-# Show the conversation logs side by side
-Type "echo ''"
-Enter
-Type "echo '  RESULT: Two Claude Code agents built a working Pong game'"
-Enter
-Type "echo ''"
-Enter
-Type "ls -la /tmp/pong-game/"
-Enter
-Sleep 3s
-Type "echo ''"
-Enter
-Type "echo '  CONVERSATION LOG (alice):'"
-Enter
-Type "cat ~/.tmesh/nodes/alice/conversation.log"
-Enter
-Sleep 5s
-Type "echo ''"
-Enter
-Type "echo '  Zero broker. Zero cloud. Zero API keys. Just tmux.'"
-Enter
-Sleep 5s
+Sleep 2s
