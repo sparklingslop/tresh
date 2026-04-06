@@ -1,5 +1,6 @@
-# tmesh -- real Claude Code split-pane demo
-# Two Claude Code sessions side by side in tmux, talking via tmesh.
+# tmesh -- real work + real coordination demo
+# Alice builds pong frontend, Bob builds game engine.
+# They coordinate via tmesh when they need to align on the API.
 
 Output assets/demo-orchestration.gif
 Set Shell "zsh"
@@ -11,41 +12,43 @@ Set Padding 5
 Set TypingSpeed 0
 Set Framerate 8
 
-# ── Setup tmux with two panes (hidden) ──────────────────────────────
+# ── Setup (hidden) ──────────────────────────────────────────────────
 Hide
 Type "bash /tmp/tmesh-demo-setup.sh"
 Enter
-Sleep 10s
+Sleep 12s
 Show
 
-# ── Attach to tmux ──────────────────────────────────────────────────
+# ── Attach to split tmux ────────────────────────────────────────────
 Type "tmux attach -t demo"
 Enter
 Sleep 2s
 
-# ── Left pane: launch alice ─────────────────────────────────────────
+# ── Left pane: alice starts building frontend ────────────────────────
 Set TypingSpeed 20ms
 Type "bash /tmp/tmesh-demo-alice.sh"
 Set TypingSpeed 0
 Enter
 Sleep 8s
 
-# ── Switch to right pane ────────────────────────────────────────────
+# ── Switch to right pane: bob starts building engine ─────────────────
 Ctrl+b
 Sleep 300ms
 Right
 Sleep 1s
 
-# ── Right pane: launch bob ──────────────────────────────────────────
 Set TypingSpeed 20ms
 Type "bash /tmp/tmesh-demo-bob.sh"
 Set TypingSpeed 0
 Enter
 
-# ── Let the agents talk ─────────────────────────────────────────────
-Sleep 150s
+# ── Let them work and coordinate ─────────────────────────────────────
+# Bob codes the engine, alice codes the frontend.
+# Alice asks bob for the API, bob responds.
+# Both produce real files at /tmp/pong-game/
+Sleep 180s
 
-# ── Detach ──────────────────────────────────────────────────────────
+# ── Done ─────────────────────────────────────────────────────────────
 Ctrl+b
 Sleep 300ms
 Type "d"
