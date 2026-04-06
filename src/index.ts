@@ -163,3 +163,112 @@ export type {
   InjectResult,
   PeekResult,
 } from './core/inject';
+
+// Pane Registry (Phase 7.1 -- name-based addressing)
+export {
+  registerPane,
+  resolvePane,
+  listRegisteredPanes,
+  unregisterPane,
+  isValidPaneName,
+} from './core/pane-registry';
+
+export type {
+  PaneRegistryOptions,
+} from './core/pane-registry';
+
+// Pane Lifecycle (Phase 7.2 -- spawn, kill, health)
+export {
+  spawnPane,
+  killPane,
+  isPaneDead,
+  getPaneMode,
+  paneExists,
+  getPaneCommand,
+  isValidPaneId,
+} from './core/pane-lifecycle';
+
+export type {
+  SpawnPaneOptions,
+  PaneMode,
+  PaneHealth,
+} from './core/pane-lifecycle';
+
+// Synchronization (Phase 7.3 -- tmux wait-for)
+export {
+  waitFor,
+  signalWait,
+  isValidChannel,
+  buildWaitForCommand,
+  buildSignalWaitCommand,
+} from './core/sync';
+
+export type {
+  WaitForOptions,
+  WaitForResult,
+} from './core/sync';
+
+// Output Streaming (Phase 7.4 -- pipe-pane)
+export {
+  streamPane,
+  buildPipePaneCommand,
+  buildStopPipePaneCommand,
+  streamOutputPath,
+} from './core/stream';
+
+export type {
+  StreamOptions,
+  StreamHandle,
+  StreamResult,
+} from './core/stream';
+
+// Safety Layer (Phase 7.5 -- guards for send-keys)
+export {
+  safeSend,
+  detectHumanTyping,
+  waitForCopyModeExit,
+} from './core/safety';
+
+export type {
+  SafeSendOptions,
+  SafeSendResult,
+  SafeSendError,
+} from './core/safety';
+
+// Supervision (Phase 7.6 -- transparent pane observation)
+export {
+  supervise,
+} from './core/supervisor';
+
+export type {
+  SuperviseOptions,
+  SuperviseHandle,
+  SuperviseResult,
+} from './core/supervisor';
+
+// Task Orchestration (Phase 8 -- single/parallel/chain)
+export {
+  runTask,
+  runParallel,
+  runChain,
+  mapWithConcurrency,
+} from './core/orchestrator';
+
+export type {
+  TaskDef,
+  TaskResult,
+  ParallelOptions,
+} from './core/orchestrator';
+
+// Agent Definitions (Phase 9 -- markdown frontmatter discovery)
+export {
+  discoverAgents,
+  parseAgentFile,
+  parseFrontmatter,
+  validateAgentDef,
+} from './core/agent-defs';
+
+export type {
+  AgentDefinition,
+  DiscoverAgentsOptions,
+} from './core/agent-defs';
