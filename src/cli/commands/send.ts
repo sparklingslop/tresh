@@ -29,7 +29,7 @@ import { execFileSync } from 'node:child_process';
 import { resolveHome } from '../../types';
 import type { SignalType } from '../../types';
 import { formatOutbound } from '../../core/display';
-import { appendOutbound, appendInbound } from '../../core/conversation';
+import { appendOutbound } from '../../core/conversation';
 
 registerCommand('send', async (args, flags) => {
   const isPing = flags.get('ping') === true;
@@ -143,16 +143,8 @@ async function sendDirect(
     channel: channel !== 'default' ? channel : undefined,
   });
 
-  // Append to receiver's conversation log (inbound)
-  // Only write if sender != target (avoid self-messaging artifacts)
-  if (sender !== target) {
-    const targetNodeHome = resolveNodeHome(target, home);
-    await appendInbound(targetNodeHome, {
-      sender, content, timestamp: signal.timestamp,
-      type: signalType,
-      channel: channel !== 'default' ? channel : undefined,
-    });
-  }
+  // NOTE: Receiver's inbound log is written by deliverSignal() in transport.ts.
+  // Do NOT duplicate it here.
 
   // Also handle @-mentions in content (deliver to mentioned nodes too)
   const mentions = parseMentions(content);
