@@ -1,128 +1,163 @@
 #!/usr/bin/env bash
-# tmesh self-alignment demo -- fully autonomous recording
+# tmesh self-alignment demo -- ONE COMMAND, fully autonomous
 #
-# 1) Creates two tmux sessions (alice, bob)
-# 2) Joins them to the mesh
-# 3) Launches Claude Code in each with ONE prompt
-# 4) Records a terminal session showing the live conversation log
-# 5) Converts to GIF
+# Run this in your Ghostty terminal:
+#   cd tmesh && ./assets/demo-record.sh
+#
+# It will:
+#   1. Create two tmux sessions (alice, bob)
+#   2. Join them to the mesh
+#   3. Launch Claude Code in each with ONE prompt
+#   4. Wait for them to finish talking
+#   5. Record a styled replay of the conversation
+#   6. Convert to GIF
 #
 # Output: assets/demo-orchestration.gif
-#
-# Usage: ./assets/demo-record.sh
 
 set -euo pipefail
 
 TMESH_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-TMESH_CLI="${TMESH_DIR}/src/cli/index.ts"
-CAST_FILE="${TMESH_DIR}/assets/demo-orchestration.cast"
-GIF_FILE="${TMESH_DIR}/assets/demo-orchestration.gif"
-WAIT_SECONDS=90
+CLI="${TMESH_DIR}/src/cli/index.ts"
+CAST="${TMESH_DIR}/assets/demo-orchestration.cast"
+GIF="${TMESH_DIR}/assets/demo-orchestration.gif"
 
-echo "tmesh self-alignment demo"
-echo "========================="
+C='\033[0;36m'  # cyan
+G='\033[0;32m'  # green
+Y='\033[1;33m'  # yellow
+B='\033[1m'     # bold
+D='\033[2m'     # dim
+N='\033[0m'     # reset
 
-# ---------------------------------------------------------------------------
-# Cleanup
-# ---------------------------------------------------------------------------
+echo -e "${B}${C}tmesh demo recorder${N}"
+echo -e "${D}────────────────────${N}"
+echo ""
+
+# ── Cleanup ──────────────────────────────────────────────────────────
 tmux kill-session -t alice-demo 2>/dev/null || true
 tmux kill-session -t bob-demo 2>/dev/null || true
 rm -rf ~/.tmesh/nodes/alice ~/.tmesh/nodes/bob
-rm -f ~/.tmesh/conversation-alice.log ~/.tmesh/conversation-bob.log
-rm -f "${CAST_FILE}" "${GIF_FILE}"
+rm -f "${CAST}" "${GIF}"
 
-# ---------------------------------------------------------------------------
-# Create sessions and join mesh
-# ---------------------------------------------------------------------------
-echo "[1/5] Creating tmux sessions..."
+# ── Create sessions + join mesh ──────────────────────────────────────
+echo -e "[1/6] ${G}Creating tmux sessions...${N}"
 tmux new-session -d -s alice-demo
 tmux new-session -d -s bob-demo
 sleep 0.5
 
-echo "[2/5] Joining mesh..."
-tmux send-keys -t alice-demo "export TMESH_IDENTITY=alice && cd ${TMESH_DIR} && bun run ${TMESH_CLI} join alice --no-watch" Enter
-sleep 2
-tmux send-keys -t bob-demo "export TMESH_IDENTITY=bob && cd ${TMESH_DIR} && bun run ${TMESH_CLI} join bob --no-watch" Enter
-sleep 2
+tmux send-keys -t alice-demo "export TMESH_IDENTITY=alice && cd ${TMESH_DIR} && bun run ${CLI} join alice --no-watch" Enter
+sleep 3
+tmux send-keys -t bob-demo "export TMESH_IDENTITY=bob && cd ${TMESH_DIR} && bun run ${CLI} join bob --no-watch" Enter
+sleep 3
 
-# ---------------------------------------------------------------------------
-# Launch Claude Code in each session
-# ---------------------------------------------------------------------------
-echo "[3/5] Launching Claude Code agents..."
+# ── Launch Claude Code ───────────────────────────────────────────────
+echo -e "[2/6] ${G}Launching Claude Code agents...${N}"
 
-ALICE_PROMPT="You are 'alice' on a tmesh mesh. Run: tmesh who -- to find other agents. Then run: tmesh send bob \"Hi Bob, I'm alice. What are you working on?\" -- to start a conversation. When you see [tmesh ...] lines those are incoming messages. Reply with tmesh send <name> \"reply\". Have a 3-message conversation. You are refactoring the payment service. Be brief."
+ALICE_PROMPT="You are alice on a tmesh mesh. Run tmesh who to find other agents. Then send a greeting to bob with: tmesh send bob \"Hi Bob, I am alice, refactoring the payment service. What are you working on?\" -- When you see [tmesh ...] lines, reply with tmesh send <name> \"reply\". Have a 3-message conversation. Be concise."
 
-BOB_PROMPT="You are 'bob' on a tmesh mesh. Run: tmesh who -- to discover agents. When you see a [tmesh ...] message, reply using: tmesh send alice \"your reply\". You are working on a database migration for the auth service. Have a 3-message conversation. Be brief."
+BOB_PROMPT="You are bob on a tmesh mesh. Run tmesh who to discover agents. When you see a [tmesh ...] message, reply using tmesh send alice \"your reply\". You are working on a database migration for the auth service. Have a 3-message conversation. Be concise."
 
-tmux send-keys -t alice-demo "claude --dangerously-skip-permissions \"${ALICE_PROMPT}\"" Enter
-sleep 2
-tmux send-keys -t bob-demo "claude --dangerously-skip-permissions \"${BOB_PROMPT}\"" Enter
-sleep 2
+tmux send-keys -t alice-demo "claude --dangerously-skip-permissions '${ALICE_PROMPT}'" Enter
+sleep 5
+tmux send-keys -t bob-demo "claude --dangerously-skip-permissions '${BOB_PROMPT}'" Enter
 
-# ---------------------------------------------------------------------------
-# Record the live conversation using asciinema
-# ---------------------------------------------------------------------------
-echo "[4/5] Recording conversation (${WAIT_SECONDS}s)..."
-echo "      Agents are talking. Watch live:"
-echo "        tmux attach -t alice-demo  (or bob-demo)"
-echo ""
+# ── Wait for conversation ────────────────────────────────────────────
+echo -e "[3/6] ${G}Waiting for agents to talk...${N}"
+echo -e "      ${D}(watch live: tmux attach -t alice-demo)${N}"
 
-# Record a terminal that shows both conversation logs tailing live
-asciinema rec "${CAST_FILE}" \
+for i in $(seq 1 30); do
+  sleep 10
+  AL=$(wc -l < ~/.tmesh/nodes/alice/conversation.log 2>/dev/null || echo 0)
+  BL=$(wc -l < ~/.tmesh/nodes/bob/conversation.log 2>/dev/null || echo 0)
+  AL=$(echo "$AL" | tr -d ' ')
+  BL=$(echo "$BL" | tr -d ' ')
+  echo -e "      ${D}check ${i}: alice=${AL} msgs, bob=${BL} msgs${N}"
+  if [ "$AL" -ge 4 ] && [ "$BL" -ge 4 ]; then
+    echo -e "      ${G}Conversation complete!${N}"
+    break
+  fi
+done
+
+# ── Record styled replay ─────────────────────────────────────────────
+echo -e "[4/6] ${G}Recording conversation replay...${N}"
+
+asciinema rec "${CAST}" \
   --cols 120 --rows 40 \
-  --idle-time-limit 2 \
-  --title "tmesh -- alice and bob self-aligning via tmux" \
+  --idle-time-limit 3 \
+  --title "tmesh -- alice and bob self-aligning" \
   --command "bash -c '
+    C=\"\033[0;36m\"; G=\"\033[0;32m\"; Y=\"\033[1;33m\"; B=\"\033[1m\"; D=\"\033[2m\"; N=\"\033[0m\"
+    clear
     echo \"\"
-    echo \"  tmesh -- two Claude Code agents, zero human input\"
-    echo \"  =================================================\"
+    echo -e \"\${B}\${C}  tmesh\${N} \${D}-- two Claude Code agents, zero human input\${N}\"
+    echo -e \"\${D}  =================================================\${N}\"
     echo \"\"
-    echo \"  alice: refactoring payment service\"
-    echo \"  bob:   database migration for auth\"
+    echo -e \"  \${G}alice\${N}: refactoring payment service \${D}(Claude Code)\${N}\"
+    echo -e \"  \${G}bob\${N}:   auth service DB migration \${D}(Claude Code)\${N}\"
     echo \"\"
-    echo \"  Watching conversation logs...\"
-    echo \"  ---\"
+    echo -e \"  \${D}Each agent got ONE prompt. Everything below is autonomous.\${N}\"
+    echo \"\"
+    sleep 3
+
+    echo -e \"\${B}  Mesh Discovery\${N}\"
+    echo -e \"\${D}  ──────────────\${N}\"
+    echo \"\"
+    TMESH_IDENTITY=alice bun run ${CLI} who 2>/dev/null
     echo \"\"
     sleep 2
 
-    # Show who is on the mesh
-    TMESH_IDENTITY=alice bun run ${TMESH_CLI} who 2>/dev/null
+    echo -e \"\${B}  Alice Conversation Log\${N}\"
+    echo -e \"\${D}  ──────────────────────\${N}\"
     echo \"\"
-    echo \"  --- Live conversation (both agents) ---\"
+    while IFS= read -r line; do
+      if [[ \"\$line\" == *\"-->\"* ]]; then
+        echo -e \"  \${G}\${line}\${N}\"
+      elif [[ \"\$line\" == *\"<--\"* ]]; then
+        echo -e \"  \${Y}\${line}\${N}\"
+      fi
+      sleep 2
+    done < ~/.tmesh/nodes/alice/conversation.log
     echo \"\"
-    sleep 1
+    sleep 2
 
-    # Tail both conversation logs interleaved
-    tail -f ~/.tmesh/conversation-alice.log ~/.tmesh/conversation-bob.log 2>/dev/null &
-    TAIL_PID=\$!
-
-    # Wait for conversation to play out
-    sleep ${WAIT_SECONDS}
-
-    kill \$TAIL_PID 2>/dev/null || true
+    echo -e \"\${B}  Bob Conversation Log\${N}\"
+    echo -e \"\${D}  ────────────────────\${N}\"
     echo \"\"
+    while IFS= read -r line; do
+      if [[ \"\$line\" == *\"-->\"* ]]; then
+        echo -e \"  \${G}\${line}\${N}\"
+      elif [[ \"\$line\" == *\"<--\"* ]]; then
+        echo -e \"  \${Y}\${line}\${N}\"
+      fi
+      sleep 2
+    done < ~/.tmesh/nodes/bob/conversation.log
     echo \"\"
-    echo \"  Conversation complete.\"
-    echo \"  Zero broker. Zero cloud. Zero API keys. Just tmux.\"
+    sleep 2
+
+    echo -e \"\${B}  Mesh Topology\${N}\"
+    echo -e \"\${D}  ─────────────\${N}\"
+    echo \"\"
+    TMESH_IDENTITY=alice bun run ${CLI} who --topology 2>/dev/null
     echo \"\"
     sleep 3
+
+    echo \"\"
+    echo -e \"  \${B}Autonomous coordination. Zero human input.\${N}\"
+    echo -e \"  \${D}Zero broker. Zero cloud. Zero API keys. Just tmux.\${N}\"
+    echo \"\"
+    sleep 4
   '"
 
-# ---------------------------------------------------------------------------
-# Cleanup and convert
-# ---------------------------------------------------------------------------
-echo "[5/5] Converting to GIF..."
+# ── Convert to GIF ───────────────────────────────────────────────────
+echo -e "[5/6] ${G}Converting to GIF...${N}"
+agg --speed 1.5 --theme dracula --font-size 16 "${CAST}" "${GIF}"
+
+# ── Cleanup ──────────────────────────────────────────────────────────
+echo -e "[6/6] ${G}Cleaning up...${N}"
 tmux kill-session -t alice-demo 2>/dev/null || true
 tmux kill-session -t bob-demo 2>/dev/null || true
 
-if [ -f "${CAST_FILE}" ]; then
-  agg --speed 2 --theme dracula --font-size 16 "${CAST_FILE}" "${GIF_FILE}"
-  echo ""
-  echo "Done!"
-  echo "  Cast: ${CAST_FILE}"
-  echo "  GIF:  ${GIF_FILE}"
-  echo "  Size: $(du -h "${GIF_FILE}" | cut -f1)"
-else
-  echo "ERROR: No recording found."
-  exit 1
-fi
+echo ""
+echo -e "${B}Done!${N}"
+echo -e "  GIF: ${GIF}"
+echo -e "  Size: $(du -h "${GIF}" | cut -f1)"
+echo ""
