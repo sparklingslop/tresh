@@ -66,13 +66,14 @@ exec bun run $REPO/src/cli.ts "\$@"
 BINEOF
   chmod +x "$TRESH_BIN/tresh"
 
-  # Per-pane rcfiles: identify registers the pane TTY for true push
+  # Per-pane rcfiles: export identity + register pane TTY for true push
   for name in bob alice; do
     cat > "/tmp/tresh-pane-${name}.rc" << RCEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
+export TRESH_ID=$name
 export PATH="$TRESH_BIN:$PATH"
-tresh identify $name
+tresh identify $name >/dev/null
 RCEOF
   done
 

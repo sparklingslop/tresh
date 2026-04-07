@@ -41,7 +41,12 @@ export function identify(name: string): void {
   if (process.env.TMUX) {
     try {
       execSync(`tmux setenv TRESH_ID ${esc(name)}`, { stdio: "pipe" });
-      const tty = execSync("tmux display-message -p '#{pane_tty}'", {
+      // Use TMUX_PANE to get THIS pane's TTY (not the active pane's)
+      const paneId = process.env.TMUX_PANE;
+      const ttyCmd = paneId
+        ? `tmux display-message -p -t ${esc(paneId)} '#{pane_tty}'`
+        : "tmux display-message -p '#{pane_tty}'";
+      const tty = execSync(ttyCmd, {
         encoding: "utf8",
         stdio: ["pipe", "pipe", "pipe"],
       }).trim();
