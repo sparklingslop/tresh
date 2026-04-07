@@ -1,5 +1,5 @@
 // tresh -- core library
-// Three primitives: discover, send/recv, inject
+// Three transport modes: true push (TTY), watch push (wait-for), inject (send-keys)
 // Two watch modes: push (wait-for) and poll (setInterval)
 
 import { execSync, spawn } from "node:child_process";
@@ -131,9 +131,11 @@ export function send(target: string, body: string): Signal {
   // True push: write directly to target's pane TTY (no watcher needed)
   try {
     const tty = paneTty(target);
-    if (tty) {
-      const time = new Date(ts).toISOString().slice(11, 19);
-      const notification = `\r\n\x1b[33m[${time}] ${from}: ${body}\x1b[0m\r\n`;
+    if (tty && isValidTty(tty)) {
+      const time = formatTime(ts);
+      const safeFrom = stripAnsi(from);
+      const safeBody = stripAnsi(body);
+      const notification = `\r\n\x1b[33m[${time}] ${safeFrom}: ${safeBody}\x1b[0m\r\n`;
       writeFileSync(tty, notification);
     }
   } catch {
@@ -368,4 +370,18 @@ function esc(s: string): string {
 
 function randomSuffix(): string {
   return Math.random().toString(36).slice(2, 8);
+}
+
+// Validate TTY path to prevent arbitrary file writes
+function isValidTty(path: string): boolean {
+  return /^\/dev\/(ttys?\d+|pts\/\d+|tty[a-z]\d*)$/.test(path);
+}
+
+// Strip ANSI escape sequences from user-supplied strings
+function stripAnsi(s: string): string {
+  return s.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "");
+}
+
+export function formatTime(ts: number): string {
+  return new Date(ts).toISOString().slice(11, 19);
 }

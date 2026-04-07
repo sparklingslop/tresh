@@ -3,7 +3,7 @@
 // Thin wrapper around the core library.
 // Uses process.stdout/stderr directly (this is a CLI tool, not a service).
 
-import { discover, send, broadcast, inject, watch, inbox, identify, identity } from "./tresh";
+import { discover, send, broadcast, inject, watch, inbox, identify, identity, formatTime } from "./tresh";
 import pkg from "../package.json";
 
 const VERSION: string = pkg.version;
@@ -158,7 +158,7 @@ async function cmdWatch(args: string[]): Promise<number> {
   out(`watching inbox as ${id} (${mode} mode)...`);
   watch(
     (signal) => {
-      const ts = new Date(signal.ts).toISOString().slice(11, 19);
+      const ts = formatTime(signal.ts);
       out(`[${ts}] ${signal.from}: ${signal.body}`);
     },
     { mode, interval },
@@ -181,7 +181,7 @@ function cmdInbox(): number {
     return 0;
   }
   for (const signal of signals) {
-    const ts = new Date(signal.ts).toISOString().slice(11, 19);
+    const ts = formatTime(signal.ts);
     out(`[${ts}] ${signal.from}: ${signal.body}`);
   }
   return 0;
