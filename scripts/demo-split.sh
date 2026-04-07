@@ -140,34 +140,25 @@ demo() {
   wait_for "$SESSION:0.1" "bypass" 15
   pause 2
 
-  # Bob finds the bug (longer pauses -- Claude needs time to run ! commands)
+  # -- Poll demo inside Claude Code --
+  # Bob sends, alice reads via inbox (one-shot poll)
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
-  pause 5
+  pause 6
 
-  # Alice reads
   alice "! tresh inbox" Enter
-  pause 5
+  pause 6
 
-  alice "! tresh send bob 'nice catch, want me to write the test?'" Enter
-  pause 5
+  alice "! tresh send bob 'nice catch, writing the test now'" Enter
+  pause 6
 
-  # Bob reads and agrees
-  bob "! tresh inbox" Enter
-  pause 5
+  # -- Push demo inside Claude Code (the differentiator!) --
+  # Bob starts watching with push (timeout so it auto-exits)
+  bob "! timeout 10 tresh watch --push" Enter
+  pause 3  # let watch start and show "watching..."
 
-  bob "! tresh send alice 'yes pls, I will fix the refresh logic'" Enter
-  pause 5
-
-  # Alice confirms
-  alice "! tresh inbox" Enter
-  pause 5
-
+  # Alice sends -- bob receives INSTANTLY via push, no polling needed
   alice "! tresh send bob 'test written, all green, ship it'" Enter
-  pause 5
-
-  # Bob reads final
-  bob "! tresh inbox" Enter
-  pause 5
+  pause 10  # wait for bob's timeout to expire
 
   # ===== PHASE 4: Exit & goodbye =====
 
