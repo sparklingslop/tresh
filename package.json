@@ -1,6 +1,6 @@
 {
   "name": "tresh",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Trivially Reliable Event Shuttle for Harnesses. Where communication is properly disposed of.",
   "type": "module",
   "main": "src/tresh.ts",
