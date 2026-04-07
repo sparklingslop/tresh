@@ -1,6 +1,6 @@
 # tresh demo -- send/receive with push messaging
 
-Output assets/demo-split.gif
+Output assets/demo-split-raw.gif
 Set Shell zsh
 Set FontSize 15
 Set Width 900
