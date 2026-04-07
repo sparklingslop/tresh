@@ -63,14 +63,45 @@ pause() { sleep "${1:-1.5}"; }
 setup() {
   cleanup
 
-  # Fresh clone from GitHub (safety: only delete the exact tresh dir, never above)
+  # Fresh clone from GitHub
+  # SAFETY: 3 independent checks before deleting. Accidentally deleting
+  # the source repo or anything above ~/Code/demos/ would be fatal.
   mkdir -p "$DEMO_BASE"
   if [ -d "$DEMO_DIR" ]; then
-    # Triple-check: path must end in /demos/tresh and contain "demos"
+    safe_to_delete=true
+
+    # CHECK 1: Path must end with exactly /demos/tresh
     case "$DEMO_DIR" in
-      */demos/tresh) rm -rf "$DEMO_DIR" ;;
-      *) echo "SAFETY: refusing to delete $DEMO_DIR (unexpected path)"; exit 1 ;;
+      */demos/tresh) ;;
+      *) echo "SAFETY CHECK 1 FAILED: path does not end in /demos/tresh: $DEMO_DIR"; safe_to_delete=false ;;
     esac
+
+    # CHECK 2: Path must be exactly ~/Code/demos/tresh (no symlink tricks, no ..)
+    resolved_dir="$(cd "$DEMO_DIR" && pwd -P)"
+    expected_dir="$HOME/Code/demos/tresh"
+    if [ "$resolved_dir" != "$expected_dir" ]; then
+      echo "SAFETY CHECK 2 FAILED: resolved path $resolved_dir != expected $expected_dir"
+      safe_to_delete=false
+    fi
+
+    # CHECK 3: Must contain a .git dir with sparklingslop/tresh remote (it's our clone, not something else)
+    if [ -d "$DEMO_DIR/.git" ]; then
+      remote_url="$(git -C "$DEMO_DIR" remote get-url origin 2>/dev/null || echo "")"
+      case "$remote_url" in
+        *sparklingslop/tresh*) ;;
+        *) echo "SAFETY CHECK 3 FAILED: git remote is '$remote_url', not sparklingslop/tresh"; safe_to_delete=false ;;
+      esac
+    else
+      echo "SAFETY CHECK 3 FAILED: $DEMO_DIR/.git does not exist (not a git clone)"
+      safe_to_delete=false
+    fi
+
+    if [ "$safe_to_delete" = true ]; then
+      rm -rf "$DEMO_DIR"
+    else
+      echo "ABORTING: refusing to delete $DEMO_DIR"
+      exit 1
+    fi
   fi
   echo "Cloning tresh from GitHub..."
   git clone --quiet https://github.com/sparklingslop/tresh.git "$DEMO_DIR"
