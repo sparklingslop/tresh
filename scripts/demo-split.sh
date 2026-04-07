@@ -1,32 +1,37 @@
 #!/usr/bin/env bash
 # tresh full demo -- real Claude Code, push + poll modes
 #
-# Two tmux panes. Bob (left) and Alice (right).
-# Phase 1: True push -- background watcher, messages appear automatically
-# Phase 2: Poll comparison -- alice watches with --poll, visible delay
-# Phase 3: Real Claude Code -- both launch, chat via ! tresh, /exit
-# Phase 4: Terminal goodbye -- push watchers auto-restart
+# Clones tresh fresh from GitHub into ~/Code/demos/tresh, then runs
+# the demo in a clean environment. Two tmux panes: bob (left), alice (right).
+#
+# Phase 1: True push -- messages appear instantly on the target's terminal
+# Phase 2: Poll comparison -- visible 2s delay vs instant push
+# Phase 3: Synchronized Claude Code launch with countdown
+# Phase 4: Three CC interaction modes (shell escape, Bash tool, natural language)
+# Phase 5: Exit and goodbye
 #
 # Usage:
 #   ./scripts/demo-split.sh              # run demo, attach to watch
 #   ./scripts/demo-split.sh --record     # record with asciinema -> GIF
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
 
 # tmux attach needs a real terminal
 if [ "${1:-}" = "--record" ] && ! tty -s; then
   echo "ERROR: --record requires a real terminal (tmux attach needs a TTY)."
   echo ""
   echo "Run from Ghostty:"
-  echo "  cd $(pwd) && ./scripts/demo-split.sh --record"
+  echo "  ./scripts/demo-split.sh --record"
   exit 1
 fi
 
 SESSION="tresh-demo"
+DEMO_BASE="$HOME/Code/demos"
+DEMO_DIR="$DEMO_BASE/tresh"
 TRESH_DIR="/tmp/tresh-demo-real"
 TRESH_BIN="/tmp/tresh-demo-bin"
-REPO="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -52,21 +57,35 @@ alice() { tmux send-keys -t "$SESSION:0.1" "$@"; }
 pause() { sleep "${1:-1.5}"; }
 
 # ---------------------------------------------------------------------------
-# Setup
+# Setup -- fresh clone, clean environment
 # ---------------------------------------------------------------------------
 
 setup() {
   cleanup
 
-  # Create real tresh binary on PATH
+  # Fresh clone from GitHub (safety: only delete the exact tresh dir, never above)
+  mkdir -p "$DEMO_BASE"
+  if [ -d "$DEMO_DIR" ]; then
+    # Triple-check: path must end in /demos/tresh and contain "demos"
+    case "$DEMO_DIR" in
+      */demos/tresh) rm -rf "$DEMO_DIR" ;;
+      *) echo "SAFETY: refusing to delete $DEMO_DIR (unexpected path)"; exit 1 ;;
+    esac
+  fi
+  echo "Cloning tresh from GitHub..."
+  git clone --quiet https://github.com/sparklingslop/tresh.git "$DEMO_DIR"
+  (cd "$DEMO_DIR" && bun install --silent)
+  echo "Clone ready at $DEMO_DIR"
+
+  # Create real tresh binary pointing to the clone
   mkdir -p "$TRESH_BIN"
   cat > "$TRESH_BIN/tresh" << BINEOF
 #!/bin/bash
-exec bun run $REPO/src/cli.ts "\$@"
+exec bun run $DEMO_DIR/src/cli.ts "\$@"
 BINEOF
   chmod +x "$TRESH_BIN/tresh"
 
-  # Per-pane rcfiles: export identity + register pane TTY for true push
+  # Per-pane rcfiles: clean env, cd into clone, register identity
   for name in bob alice; do
     cat > "/tmp/tresh-pane-${name}.rc" << RCEOF
 export PS1='\$ '
@@ -74,6 +93,7 @@ export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
 export PATH="$TRESH_BIN:$PATH"
 export CONTEXT_ROTATE_DISABLE=1
+cd $DEMO_DIR
 tresh identify $name >/dev/null
 RCEOF
   done
@@ -88,7 +108,7 @@ RCEOF
   tmux respawn-pane -k -t "$SESSION:0.0" "bash --rcfile /tmp/tresh-pane-bob.rc --noprofile"
   tmux respawn-pane -k -t "$SESSION:0.1" "bash --rcfile /tmp/tresh-pane-alice.rc --noprofile"
 
-  sleep 2  # let watchers start
+  sleep 2
 }
 
 # ---------------------------------------------------------------------------
@@ -217,12 +237,12 @@ case "${1:-}" in
 
     echo ""
     echo "Processing cast -> compressed cast -> GIF via nano-creative-gif..."
-    bun run scripts/record.ts "$CAST" assets/demo-split.gif \
+    bun run "$SCRIPT_REPO/scripts/record.ts" "$CAST" "$SCRIPT_REPO/assets/demo-split.gif" \
       --max-idle=2 --theme=monokai --font-size=14 --preview-pos=75%
 
     rm -f "$CAST"
     echo ""
-    echo "Done: assets/demo-split.gif"
+    echo "Done: $SCRIPT_REPO/assets/demo-split.gif"
     cleanup
     ;;
   *)
