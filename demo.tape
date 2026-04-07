@@ -1,19 +1,20 @@
 # tmesh demo — send/receive round-trip
+# Uses `bun run src/cli.ts` since tmesh isn't globally installed
 
 Output assets/demo-raw.gif
 Set Shell zsh
 Set FontSize 15
 Set Width 900
-Set Height 500
+Set Height 520
 Set Padding 20
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 50ms
+Set TypingSpeed 40ms
 Set CursorBlink false
 
-# Title
-Type "# tmesh — zero-polling agent mesh"
+# Alias tmesh for the demo
+Type "alias tmesh='bun run src/cli.ts'"
 Enter
-Sleep 800ms
+Sleep 300ms
 
 # Identify as alice
 Type "export TMESH_IDENTITY=alice"
@@ -25,21 +26,20 @@ Type "tmesh send bob 'hello from alice'"
 Enter
 Sleep 800ms
 
-Type "tmesh send bob 'can you review PR #42?'"
+Type "tmesh send bob 'can you review PR 42?'"
 Enter
 Sleep 800ms
 
-Type "tmesh send bob 'tests pass — shipping it'"
+Type "tmesh send bob 'tests pass, shipping it'"
 Enter
 Sleep 1s
 
-# Switch to bob
+# Blank line separator
 Type ""
 Enter
-Type "# Now let's be bob and check the inbox"
-Enter
-Sleep 600ms
+Sleep 200ms
 
+# Switch identity to bob
 Type "export TMESH_IDENTITY=bob"
 Enter
 Sleep 400ms
@@ -49,17 +49,12 @@ Type "tmesh inbox"
 Enter
 Sleep 2s
 
-# Show it's consumed
+# Show consumed
 Type "tmesh inbox"
 Enter
 Sleep 1.5s
 
 # Discover peers
-Type ""
-Enter
-Type "# See who's on the mesh"
-Enter
-Sleep 400ms
 Type "tmesh ls"
 Enter
 Sleep 2s
