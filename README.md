@@ -4,7 +4,16 @@
 
 <h3 align="center">The tmux agent shuttle that mass-produces nothing at scale.</h3>
 
-## The backstory
+Zero-polling push between AI agent sessions via `tmux wait-for`. 450 lines. Zero dependencies. It was supposed to be a mesh. It isn't. It works anyway.
+
+```bash
+tresh send bob "hello"    # alice sends
+tresh watch               # bob receives instantly (zero CPU)
+tresh broadcast "hi all"  # send to every node
+```
+
+<details>
+<summary>The full backstory (for those who enjoy watching ambition meet reality at speed)</summary>
 
 The project was originally called tmesh, because it was going to be a mesh network for AI agents running in tmux sessions, and if there is one thing software developers are constitutionally incapable of resisting, it is naming something after what they intend it to become rather than what it is. The mesh never happened. What happened instead was a single point-to-point message shuttle between exactly two tmux panes, which is to a mesh roughly what a paper cup on a string is to the telecommunications infrastructure of a mid-sized European nation. The developers, displaying the kind of pattern recognition that explains a great deal about the state of the industry, looked at this and said "close enough."
 
@@ -14,9 +23,11 @@ The astonishing part -- and this is the part that should make you suspicious, be
 
 It ships under the label "sparkling slop," which is the kind of branding that happens when you have given up on making promises you cannot keep and have decided instead to make promises you have no intention of making in the first place. The tagline promises nothing. The software delivers it.
 
-## What it actually does
+</details>
 
-Arguably every AI coding agent or harness should run in a tmux session. tresh lets two of those sessions talk to each other by firing messages through the tmux server itself -- no sockets, no files, no daemons, no infrastructure whatsoever beyond the tmux process you were already running because you are the sort of person who reads READMEs like this one. One pane sends a message. The other pane receives it instantly, without polling, because `tmux wait-for` exists and has been patiently waiting for someone to notice. That is the entire feature set. It is, depending on your perspective, either heroically minimal or just not finished. Both of these are correct.
+## What it does
+
+Arguably every AI coding agent or harness should run in a tmux session. tresh lets those sessions talk to each other -- zero sockets, zero daemons, zero infrastructure beyond the tmux you were already running.
 
 ## Install
 
