@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 460 185" width="460" height="185">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 205" width="480" height="205">
   <!-- tresh logo: t[r/m]esh + trash can with I/O -->
-  <!-- Composition centered: text block + trash can + subtitles -->
+  <!-- Dark background for light+dark mode rendering -->
+  <rect x="0" y="0" width="480" height="205" rx="12" ry="12" fill="#1a1a2e"/>
 
   <g fill="#e8e8e8" font-family="'SF Mono','Fira Code','Cascadia Code','Consolas','Courier New',monospace">
 

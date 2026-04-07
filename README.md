@@ -65,7 +65,7 @@ tresh send alice "hello from bob"
 ```
   Session A (Claude)          Session B (Aider)
   +-----------------+         +-----------------+
-  | TRESH_ID=a|         | TRESH_ID=b|
+  | TRESH_ID=a      |         | TRESH_ID=b      |
   |                 |         |                 |
   | tresh send b msg --------- ~/.tresh/b/inbox/|
   |                 |  write  |  1712...-x7k.json
