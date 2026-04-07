@@ -146,7 +146,6 @@ BINEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
-export TRESH_HARNESS=claude-code
 export PATH="$TRESH_BIN:$PATH"
 export CONTEXT_ROTATE_DISABLE=1
 cd $DEMO_DIR
@@ -213,8 +212,9 @@ demo() {
   pause 0.5
 
   # Simultaneous launch -- both panes at once
-  bob   "claude --dangerously-skip-permissions" Enter
-  alice "claude --dangerously-skip-permissions" Enter
+  # Set TRESH_HARNESS=claude-code so CC's tresh calls skip TTY push
+  bob   "TRESH_HARNESS=claude-code claude --dangerously-skip-permissions" Enter
+  alice "TRESH_HARNESS=claude-code claude --dangerously-skip-permissions" Enter
 
   # Wait for both to be ready (handles trust prompt if it appears)
   wait_cc_ready "$SESSION:0.0" 30
