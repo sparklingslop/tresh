@@ -443,3 +443,22 @@ describe("hooks", () => {
     expect(hookChannel("bob")).toBe("tresh-keystroke-bob");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stream (named pipe output capture)
+// ---------------------------------------------------------------------------
+
+describe("stream", () => {
+  test("streamPath returns consistent FIFO path", async () => {
+    const { streamPath } = await import("../tresh");
+    const path = streamPath("my-pane");
+    expect(path).toContain("streams");
+    expect(path).toContain("my-pane");
+    expect(path).toEndWith(".fifo");
+  });
+
+  test("streamPath is deterministic", async () => {
+    const { streamPath } = await import("../tresh");
+    expect(streamPath("x")).toBe(streamPath("x"));
+  });
+});
