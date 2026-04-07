@@ -58,15 +58,16 @@ pause() { sleep "${1:-1.5}"; }
 # ---------------------------------------------------------------------------
 
 write_rc() {
-  local id=$1 rcfile="/tmp/tresh-pane-${id}.rc"
-  cat > "$rcfile" << EOF
+  local name="$1"
+  local rcfile="/tmp/tresh-pane-${name}.rc"
+  cat > "$rcfile" << RCEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
-export TRESH_ID=$id
+export TRESH_ID=$name
 export PATH='$PATH'
 tresh() { bun run $REPO/src/cli.ts "\$@"; }
 export -f tresh
-EOF
+RCEOF
   echo "$rcfile"
 }
 
