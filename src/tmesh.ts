@@ -17,11 +17,12 @@ import type { Node, Signal, SignalHandler, WatchOptions } from "./types";
 // Config
 // ---------------------------------------------------------------------------
 
-const TMESH_DIR =
-  process.env.TMESH_DIR ?? join(process.env.HOME ?? "/tmp", ".tmesh");
+function resolveDir(): string {
+  return process.env.TMESH_DIR ?? join(process.env.HOME ?? "/tmp", ".tmesh");
+}
 
 export function meshDir(): string {
-  return TMESH_DIR;
+  return resolveDir();
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +91,7 @@ export function send(target: string, body: string): Signal {
   const ts = Date.now();
   const signal: Signal = { from, to: target, body, ts };
 
-  const inboxDir = join(TMESH_DIR, target, "inbox");
+  const inboxDir = join(resolveDir(), target, "inbox");
   mkdirSync(inboxDir, { recursive: true });
 
   const filename = `${ts}-${randomSuffix()}.json`;
@@ -129,19 +130,28 @@ export function watch(handler: SignalHandler, opts?: WatchOptions): () => void {
 
   const mode = opts?.mode ?? "auto";
   const interval = opts?.interval ?? 500;
-  const inboxDir = join(TMESH_DIR, id, "inbox");
+  const inboxDir = join(resolveDir(), id, "inbox");
   mkdirSync(inboxDir, { recursive: true });
 
   let stopped = false;
+  let activeChild: ReturnType<typeof spawn> | null = null;
   const stop = () => {
     stopped = true;
+    if (activeChild) {
+      activeChild.kill();
+      activeChild = null;
+    }
   };
 
   // Drain existing signals first
   drainInbox(inboxDir, handler);
 
+  const setChild = (child: ReturnType<typeof spawn> | null) => {
+    activeChild = child;
+  };
+
   if (mode === "push" || mode === "auto") {
-    startPushWatch(inboxDir, id, handler, () => stopped, interval, mode);
+    startPushWatch(inboxDir, id, handler, () => stopped, interval, mode, setChild);
   } else {
     startPollWatch(inboxDir, handler, () => stopped, interval);
   }
@@ -158,7 +168,7 @@ export function inbox(): Signal[] {
   const id = identity();
   if (!id) return [];
 
-  const dir = join(TMESH_DIR, id, "inbox");
+  const dir = join(resolveDir(), id, "inbox");
   mkdirSync(dir, { recursive: true });
 
   return readSignals(dir);
@@ -200,20 +210,24 @@ function startPushWatch(
   isStopped: () => boolean,
   pollInterval: number,
   mode: "push" | "auto",
+  setChild: (child: ReturnType<typeof spawn> | null) => void,
 ): void {
   const loop = () => {
     if (isStopped()) return;
 
     const channel = `tmesh-inbox-${id}`;
     const child = spawn("tmux", ["wait-for", channel], { stdio: "pipe" });
+    setChild(child);
 
     child.on("error", () => {
+      setChild(null);
       if (mode === "auto") {
         startPollWatch(inboxDir, handler, isStopped, pollInterval);
       }
     });
 
     child.on("close", () => {
+      setChild(null);
       if (isStopped()) return;
       drainInbox(inboxDir, handler);
       loop();

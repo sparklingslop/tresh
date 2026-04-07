@@ -4,8 +4,12 @@
 // Uses process.stdout/stderr directly (this is a CLI tool, not a service).
 
 import { discover, send, inject, watch, inbox, identify, identity } from "./tmesh";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
-const VERSION = "0.1.0";
+const VERSION = JSON.parse(
+  readFileSync(join(import.meta.dir, "../package.json"), "utf8"),
+).version as string;
 
 const HELP = `tmesh -- tmux-native agent mesh
 
@@ -106,7 +110,7 @@ function cmdInject(args: string[]): number {
   }
 }
 
-function cmdWatch(args: string[]): number {
+async function cmdWatch(args: string[]): Promise<number> {
   const id = identity();
   if (!id) {
     err("tmesh watch: TMESH_IDENTITY not set. Run: tmesh identify <name>");
@@ -139,8 +143,8 @@ function cmdWatch(args: string[]): number {
     { mode, interval },
   );
 
-  // Keep process alive
-  return new Promise(() => {}) as unknown as number;
+  // Block forever — watch runs until killed
+  return new Promise<number>(() => {});
 }
 
 function cmdInbox(): number {
