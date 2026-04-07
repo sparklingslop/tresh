@@ -185,7 +185,7 @@ case "${1:-}" in
 
     # Record in foreground -- no forced size, uses terminal dimensions
     TMUX= asciinema rec "$CAST" --overwrite \
-      -c "TMUX= tmux attach -t $SESSION -r" || true
+      -c "TMUX= tmux attach -t $SESSION" || true
 
     wait $BG_PID 2>/dev/null || true
 
