@@ -4,6 +4,7 @@ dist/
 .env.*
 .claude/
 CLAUDE.md
+.nano-stream
 *.log
 *.tsbuildinfo
 .me/
