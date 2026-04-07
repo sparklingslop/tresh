@@ -4,16 +4,16 @@
 
 <h3 align="center">The tmux agent shuttle that mass-produces nothing at scale.</h3>
 
-Zero-polling push between AI agent sessions via `tmux wait-for`. 450 lines. Zero dependencies. 
+Zero-polling push between AI agent sessions via `tmux wait-for`. 600 lines. Zero dependencies. 
 
 It was supposed to be a mesh.
 
 It isn't. It works anyway.
 
 ```bash
-tresh send bob "hello"    # alice sends
-tresh watch               # bob receives instantly (zero CPU)
-tresh broadcast "hi all"  # send to every node
+tresh identify alice       # register this pane for push
+tresh send bob "hello"     # bob sees it instantly on his terminal
+tresh broadcast "hi all"   # send to every node
 ```
 
 <p align="center">
@@ -27,7 +27,7 @@ The project was originally called tmesh, because it was going to be a mesh netwo
 
 The name "tresh" emerged from the rubble in the way that names do when you have spent three days trying to build a distributed system and have produced instead a thing that sends a string from pane A to pane B and then stops, exhausted, like a postal worker who has been told the entire route is just the house next door. Someone mistyped "tmesh" in a commit message. Nobody corrected it. This is how all great engineering decisions are made: through fatigue, typos, and the quiet understanding that fighting entropy is not so much futile as it is rude.
 
-The astonishing part -- and this is the part that should make you suspicious, because software that works on the first try is software that is planning something -- is that tresh actually does the one thing it does rather well. It uses `tmux wait-for` to achieve zero-polling push-based communication, a technique so obvious that essentially nobody else has bothered to implement it, presumably because it would mean admitting that the solution to their architecture problem was already sitting there in a man page from 2013. The entire implementation is 450 lines of TypeScript with zero dependencies, a fact which in modern software development is roughly as unusual as encountering a fish that has strong opinions about tax policy.
+The astonishing part -- and this is the part that should make you suspicious, because software that works on the first try is software that is planning something -- is that tresh actually does the one thing it does rather well. It uses `tmux wait-for` to achieve zero-polling push-based communication, a technique so obvious that essentially nobody else has bothered to implement it, presumably because it would mean admitting that the solution to their architecture problem was already sitting there in a man page from 2013. The entire implementation is 600 lines of TypeScript with zero dependencies, a fact which in modern software development is roughly as unusual as encountering a fish that has strong opinions about tax policy.
 
 It ships under the label "sparkling slop," which is the kind of branding that happens when you have given up on making promises you cannot keep and have decided instead to make promises you have no intention of making in the first place. The tagline promises nothing. The software delivers it.
 
@@ -54,16 +54,15 @@ alias tresh='bun run src/cli.ts'  # or alias it
 ## Quick start
 
 ```bash
-# Terminal 1: identify and watch
-export TRESH_ID=alice
-tresh watch
+# Terminal 1: register bob
+tresh identify bob
 
-# Terminal 2: send a message
-export TRESH_ID=bob
-tresh send alice "hello from bob"
+# Terminal 2: register alice and send
+tresh identify alice
+tresh send bob "hello from alice"
 
-# Terminal 1 shows:
-# [00:42:15] bob: hello from bob
+# Terminal 1 shows (no watch needed -- true push via pane TTY):
+# [00:42:15] alice: hello from alice
 ```
 
 ## How it works
@@ -83,18 +82,21 @@ tresh send alice "hello from bob"
 
 **Discovery**: `tmux list-sessions` finds who is online. Sessions set `TRESH_ID` in the tmux environment.
 
-**Send**: Write a JSON signal file to the target's inbox directory, then wake the receiver with `tmux wait-for -S`.
+**Identify**: `tresh identify <name>` registers the pane's TTY device for direct push delivery.
 
-**Receive**: Block on `tmux wait-for` (zero CPU) until a signal arrives, then read the inbox. No polling needed.
+**Send**: Write a JSON signal file to the target's inbox, wake any `watch` listeners via `tmux wait-for -S`, and write a notification directly to the target's pane TTY. The message appears on the receiver's terminal instantly -- no watcher process needed.
 
-**Inject**: For direct push, `tmux send-keys` injects text straight into a pane's input.
+**Watch** (optional): Block on `tmux wait-for` (zero CPU) for structured programmatic consumption. Or poll as a fallback.
 
-## Two transport modes
+**Inject**: `tmux send-keys` pushes text straight into a pane's input.
+
+## Three transport modes
 
 | Mode | Mechanism | Use case |
 |------|-----------|----------|
-| **Async (send/recv)** | File inbox + `tmux wait-for` | Reliable, structured messaging |
-| **Direct (inject)** | `tmux send-keys` | Real-time push into agent input |
+| **True push** | `send()` writes to pane TTY | Messages appear instantly, no receiver process |
+| **Watch push** | `watch --push` + `tmux wait-for` | Structured handlers, zero CPU while idle |
+| **Direct (inject)** | `tmux send-keys` | Push text into agent input |
 
 ## Three watch modes
 
@@ -107,29 +109,33 @@ tresh watch --poll 500   # poll every 500ms (no tmux needed)
 ## CLI
 
 ```
+tresh identify <name>         Set identity and register pane for push
 tresh ls                      List mesh nodes (tmux sessions)
-tresh send <target> <body>    Send signal to target's inbox
-tresh inject <target> <text>  Push text into target's pane
+tresh send <target> <body>    Send signal (true push to target's pane)
+tresh broadcast <body>        Send to all identified nodes
+tresh inject <target> <text>  Push text into target's pane input
 tresh watch [--poll <ms>]     Watch inbox for incoming signals
 tresh inbox                   Read pending signals (one-shot)
-tresh identify <name>         Set this session's mesh identity
 ```
 
 ## Library API
 
 ```typescript
-import { discover, send, watch, inject, inbox, identify } from "tresh";
+import { discover, send, broadcast, watch, inject, inbox, identify } from "tresh";
 
-// Set identity
+// Register identity (stores pane TTY for true push)
 identify("my-agent");
+
+// Send a signal (appears on target's terminal instantly)
+send("other-agent", "hello");
+
+// Broadcast to all nodes
+broadcast("deploying now", ["alice", "bob"]);
 
 // Find peers
 const nodes = discover();
 
-// Send a signal
-send("other-agent", "hello");
-
-// Watch for signals (push mode)
+// Watch for signals (optional -- true push works without this)
 const stop = watch((signal) => {
   // signal: { from, to, body, ts }
 }, { mode: "push" });
@@ -137,7 +143,7 @@ const stop = watch((signal) => {
 // One-shot inbox read
 const signals = inbox();
 
-// Direct injection
+// Direct injection into pane input
 inject("session-name", "some text");
 ```
 
