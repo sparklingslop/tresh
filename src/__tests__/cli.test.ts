@@ -94,6 +94,23 @@ describe("cli send", () => {
 });
 
 // ---------------------------------------------------------------------------
+// broadcast
+// ---------------------------------------------------------------------------
+
+describe("cli broadcast", () => {
+  test("broadcast without body exits 1", async () => {
+    const { code, err } = await run("broadcast");
+    expect(code).toBe(1);
+    expect(err).toContain("usage");
+  });
+
+  test("broadcast shows in help", async () => {
+    const { out } = await run("--help");
+    expect(out).toContain("broadcast");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // inject
 // ---------------------------------------------------------------------------
 
