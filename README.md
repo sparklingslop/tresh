@@ -27,7 +27,7 @@ It ships under the label "sparkling slop," which is the kind of branding that ha
 
 ## What it does
 
-Arguably every AI coding agent or harness should run in a tmux session. tresh lets those sessions talk to each other -- zero sockets, zero daemons, zero infrastructure beyond the tmux you were already running.
+Arguably every AI coding agent or harness should run in a tmux session. tresh lets those sessions talk to each other -- zero sockets, zero daemons, zero infrastructure beyond the tmux you -- arguably -- should already be running.
 
 ## Install
 
