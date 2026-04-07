@@ -25,8 +25,7 @@ fi
 
 SESSION="tresh-demo"
 TRESH_DIR="/tmp/tresh-demo-real"
-TRESH_CMD="bun run $(pwd)/src/cli.ts"
-SCRIPT_PATH="$PATH"
+REPO="$(pwd)"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -37,7 +36,7 @@ cleanup() {
   rm -rf "$TRESH_DIR"
 }
 
-# Wait for a pattern in a pane. Non-fatal on timeout (demo continues).
+# Wait for a pattern in a pane. Non-fatal on timeout.
 wait_for() {
   local pane=$1 pattern=$2 timeout=${3:-30} i=0
   while ! tmux capture-pane -p -t "$pane" 2>/dev/null | grep -qE "$pattern"; do
@@ -55,6 +54,22 @@ bob()   { tmux send-keys -t "$SESSION:0.0" "$@"; }
 alice() { tmux send-keys -t "$SESSION:0.1" "$@"; }
 pause() { sleep "${1:-1.5}"; }
 
+# Send a setup command to a pane (hidden from user -- sent before clear)
+setup_pane() {
+  local pane=$1 id=$2
+  # Force bash, set env, create tresh wrapper
+  tmux send-keys -t "$pane" "bash --norc --noprofile" Enter
+  sleep 0.3
+  tmux send-keys -t "$pane" "export PS1='$ ' TRESH_DIR=$TRESH_DIR TRESH_ID=$id" Enter
+  sleep 0.2
+  tmux send-keys -t "$pane" "tresh() { bun run $REPO/src/cli.ts \"\$@\"; }; export -f tresh" Enter
+  sleep 0.2
+  tmux send-keys -t "$pane" "export PATH='$PATH'" Enter
+  sleep 0.2
+  tmux send-keys -t "$pane" "clear" Enter
+  sleep 0.3
+}
+
 # ---------------------------------------------------------------------------
 # Setup
 # ---------------------------------------------------------------------------
@@ -62,7 +77,8 @@ pause() { sleep "${1:-1.5}"; }
 setup() {
   cleanup
 
-  TMUX= tmux new-session -d -s "$SESSION" -x 160 -y 40
+  # Create session -- no forced size, let the attaching terminal decide
+  TMUX= tmux new-session -d -s "$SESSION"
   TMUX= tmux split-window -h -t "$SESSION"
 
   # Cosmetics
@@ -70,21 +86,11 @@ setup() {
   tmux setw -t "$SESSION" pane-border-style "fg=colour240"
   tmux setw -t "$SESSION" pane-active-border-style "fg=colour75"
 
-  # Bob (left pane) -- export PATH so claude is findable
-  bob "export PS1='$ ' TRESH_DIR=$TRESH_DIR TRESH_ID=bob PATH='$SCRIPT_PATH'" Enter
-  pause 0.3
-  bob "tresh() { $TRESH_CMD \"\$@\"; }; export -f tresh" Enter
-  pause 0.3
-  bob "clear" Enter
+  # Set up both panes (bash, env, tresh function)
+  setup_pane "$SESSION:0.0" bob
+  setup_pane "$SESSION:0.1" alice
 
-  # Alice (right pane)
-  alice "export PS1='$ ' TRESH_DIR=$TRESH_DIR TRESH_ID=alice PATH='$SCRIPT_PATH'" Enter
-  pause 0.3
-  alice "tresh() { $TRESH_CMD \"\$@\"; }; export -f tresh" Enter
-  pause 0.3
-  alice "clear" Enter
-
-  pause 1
+  sleep 0.5
 }
 
 # ---------------------------------------------------------------------------
@@ -177,8 +183,8 @@ case "${1:-}" in
     ) &
     BG_PID=$!
 
-    # Record in foreground (needs TTY for tmux attach)
-    TMUX= asciinema rec "$CAST" --cols 160 --rows 40 --overwrite \
+    # Record in foreground -- no forced size, uses terminal dimensions
+    TMUX= asciinema rec "$CAST" --overwrite \
       -c "TMUX= tmux attach -t $SESSION -r" || true
 
     wait $BG_PID 2>/dev/null || true
