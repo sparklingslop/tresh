@@ -237,7 +237,7 @@ demo() {
   pause 6
 
   # Alice checks her inbox (triggers auto-ack back to bob)
-  alice "Check my tresh inbox for messages from bob" Enter
+  alice "Run tresh inbox to see if bob sent anything" Enter
   pause 8
 
   # MODE B: Natural language -- alice responds through CC
@@ -245,7 +245,7 @@ demo() {
   pause 8
 
   # Bob checks inbox (sees alice's message + her ack of his earlier message)
-  bob "Check my tresh inbox" Enter
+  bob "Any messages for me? Run tresh inbox" Enter
   pause 8
 
   # MODE C: CC decides the details -- bob just states intent
@@ -253,15 +253,15 @@ demo() {
   pause 10
 
   # Alice checks inbox, then wraps up in one go
-  alice "Check tresh inbox, then message bob that tests pass -- ship it" Enter
+  alice "Run tresh inbox, then message bob that tests pass -- ship it" Enter
   pause 10
 
   # Bob checks inbox and signs off
-  bob "Check tresh inbox, then tell alice the docs are updated too -- done for today" Enter
+  bob "Run tresh inbox, then tell alice the docs are updated too -- done for today" Enter
   pause 10
 
   # Alice checks inbox and signs off
-  alice "Check tresh inbox and let bob know the PR is merged -- calling it a day" Enter
+  alice "Run tresh inbox and let bob know the PR is merged -- calling it a day" Enter
   pause 10
 
   # ===== PHASE 5: Exit and goodbye (~10s) =====
