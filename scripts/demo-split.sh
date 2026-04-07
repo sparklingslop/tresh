@@ -25,6 +25,7 @@ fi
 
 SESSION="tresh-demo"
 TRESH_DIR="/tmp/tresh-demo-real"
+TRESH_BIN="/tmp/tresh-demo-bin"
 REPO="$(pwd)"
 
 # ---------------------------------------------------------------------------
@@ -33,18 +34,16 @@ REPO="$(pwd)"
 
 cleanup() {
   tmux kill-session -t "$SESSION" 2>/dev/null || true
-  rm -rf "$TRESH_DIR" /tmp/tresh-pane-*.rc
+  rm -rf "$TRESH_DIR" "$TRESH_BIN" /tmp/tresh-pane-*.rc
 }
 
+# Wait for text in a pane. Non-fatal, silent on timeout.
 wait_for() {
-  local pane=$1 pattern=$2 timeout=${3:-30} i=0
+  local pane=$1 pattern=$2 timeout=${3:-15} i=0
   while ! tmux capture-pane -p -t "$pane" 2>/dev/null | grep -qE "$pattern"; do
     sleep 0.5
     i=$((i + 1))
-    if [ $i -ge $((timeout * 2)) ]; then
-      echo "  (wait_for timeout -- continuing)" >&2
-      return 0
-    fi
+    [ $i -ge $((timeout * 2)) ] && return 0
   done
   sleep 0.5
 }
@@ -57,22 +56,26 @@ pause() { sleep "${1:-1.5}"; }
 # Setup -- completely invisible to the viewer
 # ---------------------------------------------------------------------------
 
-write_rc() {
-  local name="$1"
-  local rcfile="/tmp/tresh-pane-${name}.rc"
-  cat > "$rcfile" << RCEOF
+setup() {
+  cleanup
+
+  # Create a real tresh binary (functions don't survive into Claude's ! shell)
+  mkdir -p "$TRESH_BIN"
+  cat > "$TRESH_BIN/tresh" << BINEOF
+#!/bin/bash
+exec bun run $REPO/src/cli.ts "\$@"
+BINEOF
+  chmod +x "$TRESH_BIN/tresh"
+
+  # Write per-pane rc files
+  for name in bob alice; do
+    cat > "/tmp/tresh-pane-${name}.rc" << RCEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
-export PATH='$PATH'
-tresh() { bun run $REPO/src/cli.ts "\$@"; }
-export -f tresh
+export PATH="$TRESH_BIN:$PATH"
 RCEOF
-  echo "$rcfile"
-}
-
-setup() {
-  cleanup
+  done
 
   TMUX= tmux new-session -d -s "$SESSION"
   TMUX= tmux split-window -h -t "$SESSION"
@@ -82,12 +85,9 @@ setup() {
   tmux setw -t "$SESSION" pane-border-style "fg=colour240"
   tmux setw -t "$SESSION" pane-active-border-style "fg=colour75"
 
-  # Start clean bash with all env pre-loaded (nothing visible)
-  local bob_rc; bob_rc=$(write_rc bob)
-  local alice_rc; alice_rc=$(write_rc alice)
-
-  tmux respawn-pane -k -t "$SESSION:0.0" "bash --rcfile $bob_rc --noprofile"
-  tmux respawn-pane -k -t "$SESSION:0.1" "bash --rcfile $alice_rc --noprofile"
+  # Start clean bash with env pre-loaded (nothing visible)
+  tmux respawn-pane -k -t "$SESSION:0.0" "bash --rcfile /tmp/tresh-pane-bob.rc --noprofile"
+  tmux respawn-pane -k -t "$SESSION:0.1" "bash --rcfile /tmp/tresh-pane-alice.rc --noprofile"
 
   sleep 1
 }
@@ -120,7 +120,7 @@ demo() {
   pause 2
 
   bob "tresh send alice 'yeah, give me a sec'" Enter
-  pause 4  # wait for poll interval to fire
+  pause 4
 
   bob "tresh send alice 'spinning up claude now'" Enter
   pause 4
@@ -130,48 +130,52 @@ demo() {
 
   # ===== PHASE 3: Real Claude Code =====
 
+  # Bob launches -- wait for "bypass permissions" in status bar
   bob "claude --dangerously-skip-permissions" Enter
-  wait_for "$SESSION:0.0" ">" 25
+  wait_for "$SESSION:0.0" "bypass" 15
+  pause 2
 
+  # Alice launches
   alice "claude --dangerously-skip-permissions" Enter
-  wait_for "$SESSION:0.1" ">" 25
+  wait_for "$SESSION:0.1" "bypass" 15
+  pause 2
 
-  # Bob finds the bug
+  # Bob finds the bug (longer pauses -- Claude needs time to run ! commands)
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
-  pause 3
+  pause 5
 
-  # Alice reads and responds
+  # Alice reads
   alice "! tresh inbox" Enter
-  pause 2.5
+  pause 5
 
   alice "! tresh send bob 'nice catch, want me to write the test?'" Enter
-  pause 3
+  pause 5
 
   # Bob reads and agrees
   bob "! tresh inbox" Enter
-  pause 2.5
+  pause 5
 
   bob "! tresh send alice 'yes pls, I will fix the refresh logic'" Enter
-  pause 3
+  pause 5
 
   # Alice confirms
   alice "! tresh inbox" Enter
-  pause 2
+  pause 5
 
   alice "! tresh send bob 'test written, all green, ship it'" Enter
-  pause 3
+  pause 5
 
   # Bob reads final
   bob "! tresh inbox" Enter
-  pause 2.5
+  pause 5
 
   # ===== PHASE 4: Exit & goodbye =====
 
   bob "/exit" Enter
-  pause 2
+  pause 3
 
   alice "/exit" Enter
-  pause 2
+  pause 3
 
   bob "tresh send alice 'good sesh, later'" Enter
   pause 2.5
@@ -199,7 +203,7 @@ case "${1:-}" in
     (
       sleep 3
       demo
-      sleep 2  # linger on final frame
+      sleep 2
       tmux kill-session -t "$SESSION" 2>/dev/null || true
     ) &
     BG_PID=$!
@@ -209,14 +213,12 @@ case "${1:-}" in
 
     wait $BG_PID 2>/dev/null || true
 
-    # Convert to GIF
     echo ""
     echo "Converting to GIF..."
     agg --font-size 14 --theme monokai "$CAST" assets/demo-split-raw.gif
     gifsicle -O3 --lossy=30 --colors 128 assets/demo-split-raw.gif -o assets/demo-split.gif
     rm -f assets/demo-split-raw.gif "$CAST"
 
-    # Preview from 75% through (not the blank last frame)
     FRAMES=$(ffprobe -v quiet -count_frames -show_entries stream=nb_read_frames -of csv=p=0 assets/demo-split.gif 2>/dev/null || echo "4")
     TARGET=$(( FRAMES * 3 / 4 ))
     ffmpeg -y -i assets/demo-split.gif -vf "select='eq(n,$TARGET)',scale=300:-1" \
@@ -224,7 +226,7 @@ case "${1:-}" in
 
     SIZE=$(du -h assets/demo-split.gif | cut -f1)
     echo "Done: assets/demo-split.gif ($SIZE, $FRAMES frames)"
-    rm -rf "$TRESH_DIR" /tmp/tresh-pane-*.rc
+    cleanup
     ;;
   *)
     echo "Demo ready. Attach with:"
