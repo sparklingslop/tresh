@@ -232,7 +232,7 @@ describe("watch", () => {
   });
 
   test("poll mode picks up new signals", async () => {
-    const { watch, identify, send } = await import("../tmesh");
+    const { watch, identify } = await import("../tmesh");
     identify("poller");
 
     const received: string[] = [];
