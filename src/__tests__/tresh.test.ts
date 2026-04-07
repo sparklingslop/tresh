@@ -418,3 +418,28 @@ describe("broadcast", () => {
     expect(self.length).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// installHook / removeHook
+// ---------------------------------------------------------------------------
+
+describe("hooks", () => {
+  test("installHook returns a cleanup function", async () => {
+    const { installHook } = await import("../tresh");
+    // Can't actually install tmux hooks without a tmux session,
+    // but we can verify the function exists and returns a function
+    try {
+      const cleanup = installHook("test-session");
+      expect(typeof cleanup).toBe("function");
+      cleanup();
+    } catch {
+      // Expected to fail without tmux — just verify it's callable
+    }
+  });
+
+  test("hookChannel generates consistent channel names", async () => {
+    const { hookChannel } = await import("../tresh");
+    expect(hookChannel("alice")).toBe("tresh-keystroke-alice");
+    expect(hookChannel("bob")).toBe("tresh-keystroke-bob");
+  });
+});

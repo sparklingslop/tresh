@@ -132,6 +132,34 @@ export function inject(target: string, text: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// Hooks (after-send-keys detection)
+// ---------------------------------------------------------------------------
+
+export function hookChannel(id: string): string {
+  return `tresh-keystroke-${id}`;
+}
+
+export function installHook(session: string): () => void {
+  const id = identity() ?? session;
+  const channel = hookChannel(id);
+  const hookCmd = `run-shell "tmux wait-for -S ${channel}"`;
+  execSync(
+    `tmux set-hook -t ${esc(session)} after-send-keys ${esc(hookCmd)}`,
+    { stdio: "pipe" },
+  );
+  return () => {
+    try {
+      execSync(
+        `tmux set-hook -u -t ${esc(session)} after-send-keys`,
+        { stdio: "pipe" },
+      );
+    } catch {
+      // Session may be gone
+    }
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Watch (receive signals)
 // ---------------------------------------------------------------------------
 
