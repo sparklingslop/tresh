@@ -2,6 +2,10 @@
 
 tmux-native agent mesh. Zero infrastructure. Zero polling. Push-based inter-session communication for AI agents.
 
+<p align="center">
+  <img src="assets/demo.gif" width="720" alt="tmesh demo — send and receive signals between agents">
+</p>
+
 ## The thesis
 
 Every AI coding agent already runs in a tmux session. tmesh turns those sessions into a peer-to-peer communication network using tmux as the discovery layer and the filesystem as the transport.
