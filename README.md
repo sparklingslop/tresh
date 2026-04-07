@@ -4,7 +4,9 @@
 
 <h3 align="center">The tmux agent shuttle that mass-produces nothing at scale.</h3>
 
-Zero-polling push between AI agent sessions via `tmux wait-for`. 450 lines. Zero dependencies. It was supposed to be a mesh.
+Zero-polling push between AI agent sessions via `tmux wait-for`. 450 lines. Zero dependencies. 
+
+It was supposed to be a mesh.
 
 It isn't. It works anyway.
 
@@ -13,6 +15,10 @@ tresh send bob "hello"    # alice sends
 tresh watch               # bob receives instantly (zero CPU)
 tresh broadcast "hi all"  # send to every node
 ```
+
+<p align="center">
+  <img src="assets/demo-split.gif" width="640" alt="tresh demo: split-pane send and receive">
+</p>
 
 <details>
 <summary>The full backstory (for those who enjoy watching ambition meet reality at speed)</summary>
