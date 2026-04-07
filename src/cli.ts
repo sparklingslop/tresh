@@ -4,12 +4,9 @@
 // Uses process.stdout/stderr directly (this is a CLI tool, not a service).
 
 import { discover, send, inject, watch, inbox, identify, identity } from "./tmesh";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import pkg from "../package.json";
 
-const VERSION = JSON.parse(
-  readFileSync(join(import.meta.dir, "../package.json"), "utf8"),
-).version as string;
+const VERSION: string = pkg.version;
 
 const HELP = `tmesh -- tmux-native agent mesh
 

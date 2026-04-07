@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "bun test",
+    "check": "bun x tsc --noEmit && bun test && bun build src/cli.ts --compile --outfile /tmp/tmesh-check && /tmp/tmesh-check --help > /dev/null",
     "build": "bun build src/cli.ts --outdir dist --target bun",
     "build:binary": "bun build src/cli.ts --compile --outfile dist/tmesh",
     "tmesh": "bun run src/cli.ts"
