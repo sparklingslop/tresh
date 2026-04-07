@@ -95,8 +95,9 @@ RCEOF
 # ---------------------------------------------------------------------------
 
 demo() {
-  # ===== PHASE 1: True push -- no watcher, messages appear on the pane =====
-  # send() writes directly to the target's pane TTY. No process needed.
+  # ===== PHASE 1: True push (~15s) =====
+  # send() writes directly to the target's pane TTY. No watcher, no polling,
+  # no background process. Messages just appear.
 
   alice "tresh send bob 'hey, you around?'" Enter
   pause 2.5
@@ -110,7 +111,8 @@ demo() {
   bob "tresh send alice 'no watcher, no polling, no background process'" Enter
   pause 2.5
 
-  # ===== PHASE 2: Poll comparison -- visible delay =====
+  # ===== PHASE 2: Poll comparison (~7s) =====
+  # Contrast: poll mode has visible delay vs instant push
 
   alice "tresh watch --poll 2000" Enter
   pause 2
@@ -121,33 +123,46 @@ demo() {
   alice C-c
   pause 1
 
-  bob "tresh send alice 'spinning up claude now'" Enter
-  pause 2.5
+  # ===== PHASE 3: Synchronized CC launch with countdown (~25s) =====
+  # Countdown via tresh push, then simultaneous Claude Code launch
 
-  # ===== PHASE 3: Real Claude Code =====
+  bob "tresh send alice 'launching claude in 3...'" Enter
+  pause 1
+  bob "tresh send alice '2...'" Enter
+  pause 1
+  bob "tresh send alice '1...'" Enter
+  pause 1
+  bob "tresh send alice 'NOW!'" Enter
+  pause 0.5
 
-  bob "claude --dangerously-skip-permissions" Enter
-  wait_for "$SESSION:0.0" "bypass" 15
+  # Simultaneous launch -- both panes at once
+  bob   "claude --dangerously-skip-permissions --effort high" Enter
+  alice "claude --dangerously-skip-permissions --effort high" Enter
+
+  # Wait for both to be ready
+  wait_for "$SESSION:0.0" "bypass" 30
+  wait_for "$SESSION:0.1" "bypass" 30
   pause 2
 
-  alice "claude --dangerously-skip-permissions" Enter
-  wait_for "$SESSION:0.1" "bypass" 15
-  pause 2
+  # ===== PHASE 4: Three CC interaction modes (~32s) =====
 
-  # True push works inside Claude Code too -- send writes to pane TTY
+  # MODE A: Shell escape -- bob sends directly, Claude doesn't see it
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
   pause 6
 
-  alice "! tresh send bob 'nice catch, writing the test now'" Enter
+  # MODE B: Bash tool -- alice asks Claude to read inbox
+  alice "please run: tresh inbox" Enter
+  pause 8
+
+  # MODE C: Natural language -- alice tells Claude to message bob
+  alice "tell bob via tresh that you are writing the test now" Enter
+  pause 12
+
+  # MODE A again: Shell escape -- bob confirms
+  bob "! tresh send alice 'test written, all green, ship it'" Enter
   pause 6
 
-  bob "! tresh send alice 'fix pushed, your turn'" Enter
-  pause 6
-
-  alice "! tresh send bob 'test written, all green, ship it'" Enter
-  pause 6
-
-  # ===== PHASE 4: Exit Claude Code -- wait for actual exit =====
+  # ===== PHASE 5: Exit and goodbye (~10s) =====
 
   bob "/exit" Enter
   wait_for "$SESSION:0.0" '^\$' 15
@@ -156,8 +171,6 @@ demo() {
   alice "/exit" Enter
   wait_for "$SESSION:0.1" '^\$' 15
   pause 1
-
-  # ===== PHASE 5: Terminal goodbye =====
 
   bob "tresh send alice 'good sesh, later'" Enter
   pause 2.5
@@ -193,18 +206,13 @@ case "${1:-}" in
     wait $BG_PID 2>/dev/null || true
 
     echo ""
-    echo "Converting to GIF..."
-    agg --font-size 14 --theme monokai "$CAST" assets/demo-split-raw.gif
-    gifsicle -O3 --lossy=30 --colors 128 assets/demo-split-raw.gif -o assets/demo-split.gif
-    rm -f assets/demo-split-raw.gif "$CAST"
+    echo "Processing cast -> compressed cast -> GIF via nano-creative-gif..."
+    bun run scripts/record.ts "$CAST" assets/demo-split.gif \
+      --max-idle=2 --theme=monokai --font-size=14 --preview-pos=75%
 
-    FRAMES=$(ffprobe -v quiet -count_frames -show_entries stream=nb_read_frames -of csv=p=0 assets/demo-split.gif 2>/dev/null || echo "4")
-    TARGET=$(( FRAMES * 3 / 4 ))
-    ffmpeg -y -i assets/demo-split.gif -vf "select='eq(n,$TARGET)',scale=300:-1" \
-      -frames:v 1 assets/demo-split-preview.png 2>/dev/null || true
-
-    SIZE=$(du -h assets/demo-split.gif | cut -f1)
-    echo "Done: assets/demo-split.gif ($SIZE, $FRAMES frames)"
+    rm -f "$CAST"
+    echo ""
+    echo "Done: assets/demo-split.gif"
     cleanup
     ;;
   *)
