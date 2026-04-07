@@ -15,13 +15,15 @@ No broker. No server. No cloud. No MCP. Just tmux.
 ## Install
 
 ```bash
-bun add -g tmesh
+git clone https://github.com/sparklingslop/tmesh.git
+cd tmesh && bun install
 ```
 
-Or run directly:
+Run via:
 
 ```bash
-bunx tmesh ls
+bun run src/cli.ts ls          # from the repo
+alias tmesh='bun run src/cli.ts'  # or alias it
 ```
 
 ## Quick start
