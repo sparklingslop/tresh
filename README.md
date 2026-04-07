@@ -22,15 +22,28 @@ tmesh is a zero-infrastructure communication layer for AI coding agents. No brok
 
 Works with Claude Code, Cursor, Aider, Windsurf, or any process in a tmux pane.
 
-### Agent orchestration -- supervision, parallel tasks, safe injection
+### Two Claude Code agents build a Pong game together
+
+Split tmux panes, real Claude Code sessions. Alice builds the frontend, Bob builds the game engine. They coordinate via tmesh -- sharing API specs, requesting compilation, and playing 5 rounds of Pong. One prompt each, zero human input after that:
 
 <p align="center">
-  <img src="assets/demo-orchestration.gif" width="720" alt="tmesh agent orchestration -- two agents discovering, messaging, and supervising">
+  <img src="assets/demo-orchestration.gif" width="720" alt="Split tmux panes: two Claude Code agents building a Pong game via tmesh coordination">
 </p>
 
-### Two Claude Code agents self-coordinating
+The conversation (captured from real agent logs):
 
-Alice and Bob are separate Claude Code sessions. One prompt each -- then they autonomously send, receive, and respond via tmesh:
+```
+alice --> bob: Building the frontend. Please build engine.ts and send me your API.
+bob   --> alice: Engine done. API: createGame(), getState(), movePaddle(). CONFIG: {WIDTH:800,HEIGHT:600}.
+alice --> bob: Frontend done. Please compile engine.ts to engine.js and write test-game.ts for 5 rounds.
+bob   --> alice: Compiled + test ready. Run: bun run /tmp/pong-game/test-game.ts
+alice --> bob: Test results: Round 1: P1=0 P2=1, Round 2: P1=1 P2=1, ... Final: P1=2 P2=3. Game works!
+bob   --> alice: Confirmed -- 5 rounds simulated. Pong is live.
+```
+
+### Earlier demo: injection-based messaging
+
+Alice and Bob as separate Claude Code sessions, autonomously sending and responding via tmesh:
 
 <p align="center">
   <img src="assets/demo-claude.gif" width="720" alt="Two Claude Code agents (alice and bob) autonomously coordinating via tmesh">
