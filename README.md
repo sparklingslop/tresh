@@ -49,11 +49,11 @@ alias tresh='bun run src/cli.ts'  # or alias it
 
 ```bash
 # Terminal 1: identify and watch
-export TRESH_IDENTITY=alice
+export TRESH_ID=alice
 tresh watch
 
 # Terminal 2: send a message
-export TRESH_IDENTITY=bob
+export TRESH_ID=bob
 tresh send alice "hello from bob"
 
 # Terminal 1 shows:
@@ -65,7 +65,7 @@ tresh send alice "hello from bob"
 ```
   Session A (Claude)          Session B (Aider)
   +-----------------+         +-----------------+
-  | TRESH_IDENTITY=a|         | TRESH_IDENTITY=b|
+  | TRESH_ID=a|         | TRESH_ID=b|
   |                 |         |                 |
   | tresh send b msg --------- ~/.tresh/b/inbox/|
   |                 |  write  |  1712...-x7k.json
@@ -75,7 +75,7 @@ tresh send alice "hello from bob"
   +-----------------+         +-----------------+
 ```
 
-**Discovery**: `tmux list-sessions` finds who is online. Sessions set `TRESH_IDENTITY` in the tmux environment.
+**Discovery**: `tmux list-sessions` finds who is online. Sessions set `TRESH_ID` in the tmux environment.
 
 **Send**: Write a JSON signal file to the target's inbox directory, then wake the receiver with `tmux wait-for -S`.
 

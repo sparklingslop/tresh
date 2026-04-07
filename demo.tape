@@ -17,7 +17,7 @@ Enter
 Sleep 300ms
 
 # Identify as alice
-Type "export TRESH_IDENTITY=alice"
+Type "export TRESH_ID=alice"
 Enter
 Sleep 400ms
 
@@ -40,7 +40,7 @@ Enter
 Sleep 200ms
 
 # Switch identity to bob
-Type "export TRESH_IDENTITY=bob"
+Type "export TRESH_ID=bob"
 Enter
 Sleep 400ms
 

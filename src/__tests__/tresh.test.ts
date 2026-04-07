@@ -10,13 +10,13 @@ beforeEach(() => {
   rmSync(TEST_DIR, { recursive: true, force: true });
   mkdirSync(TEST_DIR, { recursive: true });
   process.env.TRESH_DIR = TEST_DIR;
-  delete process.env.TRESH_IDENTITY;
+  delete process.env.TRESH_ID;
 });
 
 afterEach(() => {
   rmSync(TEST_DIR, { recursive: true, force: true });
   delete process.env.TRESH_DIR;
-  delete process.env.TRESH_IDENTITY;
+  delete process.env.TRESH_ID;
 });
 
 // ---------------------------------------------------------------------------
@@ -59,11 +59,11 @@ describe("identity", () => {
     expect(identity()).toBeUndefined();
   });
 
-  test("identify() sets TRESH_IDENTITY env var", async () => {
+  test("identify() sets TRESH_ID env var", async () => {
     const { identify, identity } = await import("../tresh");
     identify("alice");
     expect(identity()).toBe("alice");
-    expect(process.env.TRESH_IDENTITY).toBe("alice");
+    expect(process.env.TRESH_ID).toBe("alice");
   });
 });
 
@@ -206,7 +206,7 @@ describe("inbox", () => {
 describe("watch", () => {
   test("throws when identity not set", async () => {
     const { watch } = await import("../tresh");
-    expect(() => watch(() => {})).toThrow("TRESH_IDENTITY not set");
+    expect(() => watch(() => {})).toThrow("TRESH_ID not set");
   });
 
   test("drains existing signals on start", async () => {
@@ -364,7 +364,7 @@ describe("send + inbox round-trip", () => {
 // ---------------------------------------------------------------------------
 
 describe("broadcast", () => {
-  test("sends to all nodes with TRESH_IDENTITY set", async () => {
+  test("sends to all nodes with TRESH_ID set", async () => {
     const { broadcast, inbox, identify } = await import("../tresh");
 
     // Set up inboxes for two targets by sending them a signal first

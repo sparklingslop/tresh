@@ -30,14 +30,14 @@ export function meshDir(): string {
 // ---------------------------------------------------------------------------
 
 export function identity(): string | undefined {
-  return process.env.TRESH_IDENTITY;
+  return process.env.TRESH_ID;
 }
 
 export function identify(name: string): void {
-  process.env.TRESH_IDENTITY = name;
+  process.env.TRESH_ID = name;
   if (process.env.TMUX) {
     try {
-      execSync(`tmux setenv TRESH_IDENTITY ${esc(name)}`, { stdio: "pipe" });
+      execSync(`tmux setenv TRESH_ID ${esc(name)}`, { stdio: "pipe" });
     } catch {
       // Not in tmux or tmux unavailable
     }
@@ -69,7 +69,7 @@ export function discover(): Node[] {
       const node: Node = { session, created };
       try {
         const env = execSync(
-          `tmux show-environment -t ${esc(session)} TRESH_IDENTITY`,
+          `tmux show-environment -t ${esc(session)} TRESH_ID`,
           { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
         );
         const val = env.trim().split("=")[1];
@@ -204,7 +204,7 @@ export function startStream(paneId: string): { path: string; stop: () => void } 
 
 export function watch(handler: SignalHandler, opts?: WatchOptions): () => void {
   const id = identity();
-  if (!id) throw new Error("TRESH_IDENTITY not set. Call identify() first.");
+  if (!id) throw new Error("TRESH_ID not set. Call identify() first.");
 
   const mode = opts?.mode ?? "auto";
   const interval = opts?.interval ?? 500;

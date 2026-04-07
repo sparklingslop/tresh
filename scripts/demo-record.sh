@@ -26,7 +26,7 @@ asciinema rec "$CAST" --cols 120 --rows 30 --overwrite -c "bash -c '
 
   # Create tmux session with bob in left pane
   tmux new-session -d -s \$SESSION -x 120 -y 30
-  tmux send-keys -t \$SESSION \"export TRESH_IDENTITY=bob\" Enter
+  tmux send-keys -t \$SESSION \"export TRESH_ID=bob\" Enter
   sleep 0.5
   tmux send-keys -t \$SESSION \"echo \\\"--- bob watching (push mode) ---\\\"\" Enter
   sleep 0.3
@@ -36,7 +36,7 @@ asciinema rec "$CAST" --cols 120 --rows 30 --overwrite -c "bash -c '
   # Split right pane for alice
   tmux split-window -h -t \$SESSION
   sleep 0.5
-  tmux send-keys -t \$SESSION \"export TRESH_IDENTITY=alice\" Enter
+  tmux send-keys -t \$SESSION \"export TRESH_ID=alice\" Enter
   sleep 0.5
   tmux send-keys -t \$SESSION \"echo \\\"--- alice sending ---\\\"\" Enter
   sleep 1

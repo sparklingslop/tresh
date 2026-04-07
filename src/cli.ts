@@ -134,7 +134,7 @@ function cmdInject(args: string[]): number {
 async function cmdWatch(args: string[]): Promise<number> {
   const id = identity();
   if (!id) {
-    err("tresh watch: TRESH_IDENTITY not set. Run: tresh identify <name>");
+    err("tresh watch: TRESH_ID not set. Run: tresh identify <name>");
     return 1;
   }
 
@@ -171,7 +171,7 @@ async function cmdWatch(args: string[]): Promise<number> {
 function cmdInbox(): number {
   const id = identity();
   if (!id) {
-    err("tresh inbox: TRESH_IDENTITY not set. Run: tresh identify <name>");
+    err("tresh inbox: TRESH_ID not set. Run: tresh identify <name>");
     return 1;
   }
 

@@ -130,6 +130,6 @@ describe("cli inbox", () => {
   test("inbox without identity exits 1", async () => {
     const { code, err } = await run("inbox");
     expect(code).toBe(1);
-    expect(err).toContain("TRESH_IDENTITY");
+    expect(err).toContain("TRESH_ID");
   });
 });

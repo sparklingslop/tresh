@@ -2,7 +2,7 @@
   <!-- tresh logo: t[r/m]esh + trash can with I/O -->
   <!-- Composition centered: text block + trash can + subtitles -->
 
-  <g fill="currentColor" font-family="'SF Mono','Fira Code','Cascadia Code','Consolas','Courier New',monospace">
+  <g fill="#e8e8e8" font-family="'SF Mono','Fira Code','Cascadia Code','Consolas','Courier New',monospace">
 
     <!-- t -->
     <text x="40" y="128" font-size="72" font-weight="700" letter-spacing="4">t</text>
@@ -31,7 +31,7 @@
     <path d="M-2 15 L4 18 L-2 21" fill="none" stroke="#ff2d8a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
 
     <!-- trash can -->
-    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6">
+    <g fill="none" stroke="#e8e8e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6">
       <line x1="4" y1="6" x2="36" y2="6"/>
       <path d="M13 6 L13 2 Q13 -2 17 -2 L23 -2 Q27 -2 27 2 L27 6"/>
       <line x1="0" y1="10" x2="40" y2="10"/>
@@ -41,7 +41,7 @@
       <line x1="25" y1="15" x2="24.5" y2="40" stroke-width="1" opacity="0.25"/>
     </g>
     <!-- cursor inside -->
-    <rect x="17" y="20" width="6" height="10" fill="currentColor" opacity="0.4" rx="0.5"/>
+    <rect x="17" y="20" width="6" height="10" fill="#e8e8e8" opacity="0.4" rx="0.5"/>
 
     <!-- outgoing signals (right) — mirror of left -->
     <path d="M46 10 Q50 18 46 26" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
@@ -52,7 +52,7 @@
   </g>
 
   <!-- Acronym — centered on composition -->
-  <text x="240" y="162" text-anchor="middle" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="9.5" fill="currentColor" opacity="0.4" letter-spacing="2.5">TRIVIALLY RELIABLE EVENT SHUTTLE FOR HARNESSES</text>
+  <text x="240" y="162" text-anchor="middle" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="9.5" fill="#e8e8e8" opacity="0.4" letter-spacing="2.5">TRIVIALLY RELIABLE EVENT SHUTTLE FOR HARNESSES</text>
 
   <!-- Trash pun tagline -->
   <text x="230" y="180" text-anchor="middle" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="9" fill="#ff2d8a" opacity="0.4" letter-spacing="1.5" font-style="italic">where communication is properly disposed of</text>
