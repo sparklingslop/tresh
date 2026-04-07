@@ -1,5 +1,6 @@
-# tresh demo -- bidirectional messaging with Claude Code sessions
-# Left: bob. Right: alice. Terminal -> Claude Code -> terminal.
+# tresh demo -- push vs poll modes (quick VHS version)
+# Left: bob (push). Right: alice (poll). Shows the delivery difference.
+# For the full demo with real Claude Code, use: ./scripts/demo-split.sh --record
 
 Output assets/demo-split-raw.gif
 Require tmux
@@ -24,7 +25,7 @@ Hide
   Type "tmux split-window -d -h -- bash" Enter
   Sleep 500ms
 
-  # Cosmetics: no status bar, active border visible
+  # Cosmetics
   Type "tmux set status off" Enter
   Sleep 200ms
   Type 'tmux setw pane-border-style "fg=8"' Enter
@@ -32,7 +33,7 @@ Hide
   Type 'tmux setw pane-active-border-style "fg=12"' Enter
   Sleep 200ms
 
-  # Set up alice (right pane)
+  # Alice (right pane)
   Ctrl+B
   Type "o"
   Sleep 300ms
@@ -40,12 +41,10 @@ Hide
   Sleep 200ms
   Type 'tresh() { bun run src/cli.ts "$@"; }; export -f tresh' Enter
   Sleep 200ms
-  Type 'alias claude-yolo="bash scripts/fake-claude.sh"' Enter
-  Sleep 200ms
   Type "clear" Enter
   Sleep 300ms
 
-  # Set up bob (left pane -- bob starts)
+  # Bob (left pane)
   Ctrl+B
   Type "o"
   Sleep 300ms
@@ -53,126 +52,87 @@ Hide
   Sleep 200ms
   Type 'tresh() { bun run src/cli.ts "$@"; }; export -f tresh' Enter
   Sleep 200ms
-  Type 'alias claude-yolo="bash scripts/fake-claude.sh"' Enter
-  Sleep 200ms
   Type "clear" Enter
   Sleep 300ms
   Ctrl+L
   Sleep 500ms
 Show
 
-# ===== ACT 1: Terminal chat =====
+# ===== PUSH MODE: bob watches, alice sends =====
 
 Sleep 500ms
 
-# Bob starts
-Type "tresh send alice 'ready?'"
+# Bob starts watching with push (zero-CPU block)
+Type "tresh watch --push"
 Enter
-Sleep 2s
+Sleep 1.5s
 
-# Alice reads and responds
+# Switch to alice -- she sends messages
 Ctrl+B
 Type "o"
 Sleep 800ms
+
+Type "tresh send bob 'hello from alice'"
+Enter
+Sleep 2.5s
+
+Type "tresh send bob 'push is instant'"
+Enter
+Sleep 2.5s
+
+# Bob stops watching
+Ctrl+B
+Type "o"
+Sleep 500ms
+Ctrl+C
+Sleep 500ms
+
+# ===== POLL MODE: alice watches, bob sends =====
+
+# Switch to alice -- she watches with poll
+Ctrl+B
+Type "o"
+Sleep 500ms
+
+Type "tresh watch --poll 2000"
+Enter
+Sleep 1.5s
+
+# Bob sends -- alice gets it after poll interval
+Ctrl+B
+Type "o"
+Sleep 500ms
+
+Type "tresh send alice 'and poll works too'"
+Enter
+Sleep 4s
+
+# Alice stops watching
+Ctrl+B
+Type "o"
+Sleep 500ms
+Ctrl+C
+Sleep 500ms
+
+# ===== Quick send/inbox round-trip =====
+
+# Bob sends
+Ctrl+B
+Type "o"
+Sleep 500ms
+
+Type "tresh send alice 'later!'"
+Enter
+Sleep 2s
+
+# Alice reads one-shot
+Ctrl+B
+Type "o"
+Sleep 500ms
 
 Type "tresh inbox"
 Enter
-Sleep 1.5s
-
-Type "tresh send bob 'yep, going claude'"
-Enter
 Sleep 2s
-
-# Bob reads
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "tresh inbox"
-Enter
-Sleep 1.5s
-
-# ===== ACT 2: Both launch Claude Code =====
-
-Type "claude-yolo"
-Enter
-Sleep 1.5s
-
-# Alice launches too
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "claude-yolo"
-Enter
-Sleep 1.5s
-
-# ===== ACT 3: Chat inside Claude Code =====
-
-# Switch to bob
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "! tresh send alice 'auth.ts:42 is the bug'"
-Enter
-Sleep 2s
-
-# Alice reads inside Claude Code
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "! tresh inbox"
-Enter
-Sleep 1.5s
-
-Type "! tresh send bob 'ship it'"
-Enter
-Sleep 2s
-
-# Bob reads
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "! tresh inbox"
-Enter
-Sleep 1.5s
-
-# ===== ACT 4: Exit Claude Code =====
-
-Type "/exit"
-Enter
-Sleep 1s
-
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "/exit"
-Enter
-Sleep 1s
-
-# ===== ACT 5: Terminal goodbye =====
-
-# Switch to bob
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "tresh send alice 'later'"
-Enter
-Sleep 2s
-
-# Alice reads and says bye
-Ctrl+B
-Type "o"
-Sleep 800ms
-
-Type "tresh inbox"
-Enter
-Sleep 1.5s
 
 Type "tresh send bob 'o/'"
 Enter
