@@ -141,14 +141,17 @@ export function resolveSessionIdentity(
  * Resolve the effective identity for the current session.
  *
  * Priority:
- * 1. TMESH_IDENTITY env var (set per-session by tmux set-environment)
- * 2. Identity file at {home}/identity
+ * 1. TMESH_IDENTITY process env var (inherited from shell)
+ * 2. TMESH_IDENTITY tmux session env var (set by tmesh join via tmux set-environment)
+ * 3. Identity file at {home}/identity (shared, last-writer-wins)
  *
- * In a shared-home setup, the env var is critical because the identity
- * file is shared across all sessions. The tmux env var is per-session.
+ * Step 2 is critical: when Claude Code runs tmesh commands as subprocesses,
+ * the process env may NOT have TMESH_IDENTITY (it's not inherited from the
+ * tmux session's shell). Reading the tmux session env ensures per-session
+ * identity even when the process env is empty.
  */
 export async function resolveEffectiveIdentity(home?: string): Promise<Result<Identity>> {
-  // Check env var first (per-session, set by tmux set-environment)
+  // 1. Check process env var first (fastest, works when shell exports it)
   const envIdentity = process.env['TMESH_IDENTITY'];
   if (envIdentity !== undefined && envIdentity.trim().length > 0) {
     try {
@@ -158,8 +161,52 @@ export async function resolveEffectiveIdentity(home?: string): Promise<Result<Id
     }
   }
 
-  // Fall back to identity file
+  // 2. Check current tmux session's environment (per-session, set by tmesh join)
+  // This bridges the gap when process.env doesn't have TMESH_IDENTITY
+  // (e.g., Claude Code subprocesses don't inherit tmux session shell vars).
+  // Skipped when TMESH_SKIP_TMUX_ENV=1 (used by tests to isolate identity).
+  if (process.env['TMESH_SKIP_TMUX_ENV'] !== '1') {
+    const tmuxIdentity = readCurrentTmuxSessionIdentity();
+    if (tmuxIdentity !== null) {
+      try {
+        return Ok(Identity(tmuxIdentity));
+      } catch {
+        // Invalid identity in tmux env, fall through
+      }
+    }
+  }
+
+  // 3. Fall back to identity file (shared across sessions)
   return readIdentity(home);
+}
+
+/**
+ * Read TMESH_IDENTITY from the current tmux session's environment.
+ * Uses `tmux display-message -p '#{session_name}'` to find which session
+ * we're in, then reads its environment.
+ */
+function readCurrentTmuxSessionIdentity(): string | null {
+  try {
+    // Get current session name
+    const sessionName = execSync(
+      "tmux display-message -p '#{session_name}' 2>/dev/null",
+      { encoding: 'utf-8' },
+    ).trim();
+
+    if (sessionName.length === 0) return null;
+
+    // Read TMESH_IDENTITY from that session's environment
+    const output = execSync(
+      `tmux show-environment -t ${sessionName} TMESH_IDENTITY 2>/dev/null`,
+      { encoding: 'utf-8' },
+    ).trim();
+
+    if (output.startsWith('-') || !output.includes('=')) return null;
+    const value = output.split('=').slice(1).join('=');
+    return value.length > 0 ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
