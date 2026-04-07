@@ -12,6 +12,16 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import type { Node, Signal, SignalHandler, WatchOptions } from "./types";
+import { harness as getHarness } from "./harness";
+
+/** Resolve ack mode: explicit opt > env var > harness default */
+function resolveAck(explicit?: boolean): boolean {
+  if (explicit !== undefined) return explicit;
+  const env = process.env.TRESH_ACK;
+  if (env === "1") return true;
+  if (env === "0") return false;
+  return getHarness().ackByDefault;
+}
 
 // ---------------------------------------------------------------------------
 // Config
@@ -130,17 +140,17 @@ export function send(target: string, body: string, type?: "message" | "ack"): Si
   }
 
   // True push: write directly to target's pane TTY (no watcher needed)
-  try {
-    const tty = paneTty(target);
-    if (tty && isValidTty(tty)) {
-      const time = formatTime(ts);
-      const safeFrom = stripAnsi(from);
-      const safeBody = stripAnsi(body);
-      const notification = `\r\n\x1b[33m[${time}] ${safeFrom}: ${safeBody}\x1b[0m\r\n`;
-      writeFileSync(tty, notification);
+  // Skipped when harness.ttyPush is false (e.g. claude-code harness)
+  const h = getHarness();
+  if (h.ttyPush && h.notification) {
+    try {
+      const tty = paneTty(target);
+      if (tty && isValidTty(tty)) {
+        writeFileSync(tty, h.notification(signal));
+      }
+    } catch {
+      // TTY not available or not writable
     }
-  } catch {
-    // TTY not available or not writable
   }
 
   return signal;
@@ -257,7 +267,7 @@ export function watch(handler: SignalHandler, opts?: WatchOptions): () => void {
     }
   };
 
-  const ack = opts?.ack ?? false;
+  const ack = resolveAck(opts?.ack);
   const wrappedHandler: SignalHandler = (signal) => {
     if (ack && signal.type !== "ack") {
       send(signal.from, `ack: ${signal.body}`, "ack");
@@ -294,7 +304,7 @@ export function inbox(opts?: { ack?: boolean }): Signal[] {
   mkdirSync(dir, { recursive: true });
 
   const signals = readSignals(dir);
-  if (opts?.ack) {
+  if (resolveAck(opts?.ack)) {
     for (const signal of signals) {
       if (signal.type !== "ack") {
         send(signal.from, `ack: ${signal.body}`, "ack");
@@ -392,11 +402,6 @@ function randomSuffix(): string {
 // Validate TTY path to prevent arbitrary file writes
 function isValidTty(path: string): boolean {
   return /^\/dev\/(ttys?\d+|pts\/\d+|tty[a-z]\d*)$/.test(path);
-}
-
-// Strip ANSI escape sequences from user-supplied strings
-function stripAnsi(s: string): string {
-  return s.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "");
 }
 
 export function formatTime(ts: number): string {

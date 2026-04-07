@@ -146,7 +146,7 @@ BINEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
-export TRESH_ACK=1
+export TRESH_HARNESS=claude-code
 export PATH="$TRESH_BIN:$PATH"
 export CONTEXT_ROTATE_DISABLE=1
 cd $DEMO_DIR
@@ -222,39 +222,47 @@ demo() {
   pause 2
 
   # Prime both agents: use tresh CLI, NOT nano-mesh MCP
-  PRIME="You are in a tresh demo. To communicate with other agents, ONLY use the tresh CLI via Bash: tresh send <target> <body>. Do NOT use nano-mesh MCP tools. Your identity is already set via TRESH_ID. Acknowledge with ok."
-  bob "$PRIME" Enter
+  PRIME="You are bob/alice in a tresh demo. To talk to the other agent, use the tresh CLI via Bash (tresh send <target> <msg> and tresh inbox to check messages). Never use nano-mesh MCP tools. Your identity is already set. Say ok."
+  bob "${PRIME/bob\/alice/bob}" Enter
   wait_for "$SESSION:0.0" "ok" 30
-  alice "$PRIME" Enter
+  alice "${PRIME/bob\/alice/alice}" Enter
   wait_for "$SESSION:0.1" "ok" 30
   pause 2
 
-  # ===== PHASE 4: CC communication -- all via push, three modes =====
-  # Every send() writes to the target's pane TTY. No inbox reads.
+  # ===== PHASE 4: CC communication =====
+  # Three interaction modes, with inbox checks to exercise ack mode.
 
-  # MODE A: Shell escape -- bob sends, alice sees yellow push on her pane
+  # MODE A: Shell escape -- bob runs tresh directly from the prompt
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
   pause 6
 
-  # MODE B: Bash tool -- alice asks Claude to send (not read!)
-  alice "please run: tresh send bob 'nice catch, writing the test now'" Enter
+  # Alice checks her inbox (triggers auto-ack back to bob)
+  alice "Check my tresh inbox for messages from bob" Enter
   pause 8
 
-  # MODE C: Natural language -- bob tells Claude to message alice
-  bob "tell alice via tresh that you pushed the fix" Enter
-  pause 12
-
-  # MODE B again: alice confirms via Bash tool
-  alice "please run: tresh send bob 'test written, all green, ship it'" Enter
+  # MODE B: Natural language -- alice responds through CC
+  alice "Message bob via tresh: nice catch, writing the test now" Enter
   pause 8
 
-  # Bob wraps up one more task, then announces he's done
-  bob "tell alice via tresh that you also updated the docs, done for today" Enter
-  pause 12
+  # Bob checks inbox (sees alice's message + her ack of his earlier message)
+  bob "Check my tresh inbox" Enter
+  pause 8
 
-  # Alice finishes and signs off too
-  alice "tell bob via tresh that you merged the PR, calling it a day" Enter
-  pause 12
+  # MODE C: CC decides the details -- bob just states intent
+  bob "Let alice know via tresh that the fix is pushed to main" Enter
+  pause 10
+
+  # Alice checks inbox, then wraps up in one go
+  alice "Check tresh inbox, then message bob that tests pass -- ship it" Enter
+  pause 10
+
+  # Bob checks inbox and signs off
+  bob "Check tresh inbox, then tell alice the docs are updated too -- done for today" Enter
+  pause 10
+
+  # Alice checks inbox and signs off
+  alice "Check tresh inbox and let bob know the PR is merged -- calling it a day" Enter
+  pause 10
 
   # ===== PHASE 5: Exit and goodbye (~10s) =====
 

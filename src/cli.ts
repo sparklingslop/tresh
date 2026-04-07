@@ -3,7 +3,8 @@
 // Thin wrapper around the core library.
 // Uses process.stdout/stderr directly (this is a CLI tool, not a service).
 
-import { discover, send, broadcast, inject, watch, inbox, identify, identity, formatTime } from "./tresh";
+import { discover, send, broadcast, inject, watch, inbox, identify, identity } from "./tresh";
+import { harness } from "./harness";
 import pkg from "../package.json";
 
 const VERSION: string = pkg.version;
@@ -17,12 +18,20 @@ Commands:
   send <target> <body>    Send a signal to target's inbox
   broadcast <body>        Send to all identified nodes
   inject <target> <text>  Push text into target's tmux pane
-  watch [--poll <ms>]     Watch inbox for incoming signals
+  watch [--push|--poll N]  Watch inbox for incoming signals
   inbox                   Read and print pending signals (one-shot)
   identify <name>         Set this session's mesh identity
 
-Options:
-  --ack                   Auto-acknowledge incoming messages (or TRESH_ACK=1)
+Options (watch/inbox):
+  --ack                   Force ack on (overrides harness default)
+
+Environment:
+  TRESH_HARNESS=NAME      Harness provider: terminal (default), claude-code
+  TRESH_ACK=1|0           Override ack mode (otherwise: harness default)
+  TRESH_ID=NAME           Set identity without calling identify
+  TRESH_DIR=PATH          Override storage directory (default: ~/.tresh)
+
+General:
   --help, -h              Show this help
   --version, -v           Show version`;
 
@@ -90,7 +99,7 @@ function cmdSend(args: string[]): number {
     return 1;
   }
   const signal = send(target, body);
-  out(`sent to ${signal.to}: ${signal.body}`);
+  out(harness().sent(signal));
   return 0;
 }
 
@@ -111,7 +120,9 @@ function cmdBroadcast(args: string[]): number {
   }
 
   const signals = broadcast(body, targets);
-  out(`broadcast to ${signals.length} node(s): ${signals.map((s) => s.to).join(", ")}`);
+  for (const signal of signals) {
+    out(harness().sent(signal));
+  }
   return 0;
 }
 
@@ -141,7 +152,7 @@ async function cmdWatch(args: string[]): Promise<number> {
 
   let mode: "push" | "poll" | "auto" = "auto";
   let interval = 500;
-  let ack = process.env.TRESH_ACK === "1";
+  let ack: boolean | undefined;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--poll") {
@@ -160,16 +171,11 @@ async function cmdWatch(args: string[]): Promise<number> {
     }
   }
 
-  const modeLabel = ack ? `${mode} mode, ack on` : `${mode} mode`;
-  out(`watching inbox as ${id} (${modeLabel})...`);
+  out(`watching inbox as ${id} (${mode} mode)...`);
+  const h = harness();
   watch(
     (signal) => {
-      const ts = formatTime(signal.ts);
-      if (signal.type === "ack") {
-        out(`\x1b[2m[${ts}] ${signal.from}: ${signal.body}\x1b[0m`);
-      } else {
-        out(`[${ts}] ${signal.from}: ${signal.body}`);
-      }
+      out(h.received(signal));
     },
     { mode, interval, ack },
   );
@@ -185,19 +191,15 @@ function cmdInbox(args: string[]): number {
     return 1;
   }
 
-  const ack = args.includes("--ack") || process.env.TRESH_ACK === "1";
+  const ack = args.includes("--ack") ? true : undefined;
   const signals = inbox({ ack });
   if (signals.length === 0) {
     out("inbox empty.");
     return 0;
   }
+  const h = harness();
   for (const signal of signals) {
-    const ts = formatTime(signal.ts);
-    if (signal.type === "ack") {
-      out(`\x1b[2m[${ts}] ${signal.from}: ${signal.body}\x1b[0m`);
-    } else {
-      out(`[${ts}] ${signal.from}: ${signal.body}`);
-    }
+    out(h.received(signal));
   }
   return 0;
 }

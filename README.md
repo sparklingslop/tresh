@@ -62,7 +62,7 @@ tresh identify alice
 tresh send bob "hello from alice"
 
 # Terminal 1 shows (no watch needed -- true push via pane TTY):
-# [00:42:15] alice: hello from alice
+# ← alice [00:42:15] hello from alice
 ```
 
 ## How it works
@@ -84,7 +84,7 @@ tresh send bob "hello from alice"
 
 **Identify**: `tresh identify <name>` registers the pane's TTY device for direct push delivery.
 
-**Send**: Write a JSON signal file to the target's inbox, wake any `watch` listeners via `tmux wait-for -S`, and write a notification directly to the target's pane TTY. The message appears on the receiver's terminal instantly -- no watcher process needed.
+**Send**: Write a JSON signal file to the target's inbox, wake any `watch` listeners via `tmux wait-for -S`, and (if the harness supports it) write a notification directly to the target's pane TTY. The message appears on the receiver's terminal instantly -- no watcher process needed.
 
 **Watch** (optional): Block on `tmux wait-for` (zero CPU) for structured programmatic consumption. Or poll as a fallback.
 
@@ -109,26 +109,47 @@ tresh watch --poll 500   # poll every 500ms (no tmux needed)
 ## CLI
 
 ```
-tresh identify <name>         Set identity and register pane for push
-tresh ls                      List mesh nodes (tmux sessions)
-tresh send <target> <body>    Send signal (true push to target's pane)
-tresh broadcast <body>        Send to all identified nodes
-tresh inject <target> <text>  Push text into target's pane input
-tresh watch [--poll <ms>]     Watch inbox for incoming signals
-tresh inbox                   Read pending signals (one-shot)
+tresh identify <name>          Set identity and register pane for push
+tresh ls                       List mesh nodes (tmux sessions)
+tresh send <target> <body>     Send signal (true push to target's pane)
+tresh broadcast <body>         Send to all identified nodes
+tresh inject <target> <text>   Push text into target's pane input
+tresh watch [--push|--poll N]  Watch inbox for incoming signals
+tresh inbox                    Read pending signals (one-shot)
 
 Options (watch/inbox):
-  --ack                       Auto-acknowledge incoming messages
+  --ack                        Auto-acknowledge incoming messages
+
+Environment:
+  TRESH_HARNESS=NAME           Harness provider: terminal (default), claude-code
+  TRESH_ACK=1                  Enable ack mode globally
+  TRESH_ID=NAME                Set identity without calling identify
+  TRESH_DIR=PATH               Override storage directory (default: ~/.tresh)
 ```
 
 ## Ack mode
 
-When enabled, incoming messages are automatically acknowledged back to the sender. Acks are never acked (no infinite loops). Ack signals display dimmed in the terminal.
+When a signal is consumed (via `inbox` or `watch`), tresh can automatically send an acknowledgement back to the sender. Acks are never acked (no infinite loops). Ack signals display dimmed.
+
+Resolution order: `--ack` flag > `TRESH_ACK=1/0` env var > harness default. The `claude-code` harness enables ack by default; `terminal` does not.
 
 ```bash
-tresh watch --ack              # auto-ack in watch mode
-tresh inbox --ack              # auto-ack in one-shot mode
-TRESH_ACK=1 tresh watch        # or via env var
+tresh watch --ack              # explicit opt-in (terminal)
+TRESH_HARNESS=claude-code tresh inbox   # ack on by default
+TRESH_ACK=0 tresh inbox        # explicit opt-out
+```
+
+## Harness providers
+
+tresh works out of the box with any terminal. Harness providers optionally adapt formatting and delivery for specific AI coding agents.
+
+| Harness | TTY push | Ack default | Use case |
+|---------|----------|-------------|----------|
+| `terminal` (default) | yes | off | Bare shell, scripts, any process |
+| `claude-code` | no | on | Claude Code (TUI would be corrupted by TTY writes) |
+
+```bash
+TRESH_HARNESS=claude-code tresh watch --ack
 ```
 
 ## Library API
@@ -174,7 +195,7 @@ One struct. Five fields. That is the entire protocol. `type` is optional: `"mess
 
 **`wait-for` as the push primitive.** `tmux wait-for` blocks at the kernel level with zero CPU. When a signal is delivered, `wait-for -S` wakes the receiver instantly. No polling loop.
 
-**Harness-agnostic.** No MCP, no Claude-specific hooks. Any process in a tmux session can participate. A bash script is a valid mesh node.
+**Harness-agnostic with optional polish.** Any process in a tmux session can participate -- a bash script is a valid mesh node. Optional harness providers (`TRESH_HARNESS=claude-code`) adapt formatting and delivery for specific AI agents without changing the protocol.
 
 **No daemon.** The library provides functions. Your agent's event loop does the work.
 
