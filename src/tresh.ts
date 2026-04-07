@@ -35,12 +35,28 @@ export function identity(): string | undefined {
 
 export function identify(name: string): void {
   process.env.TRESH_ID = name;
+  // Register pane TTY for true push delivery
+  const dir = join(resolveDir(), name);
+  mkdirSync(dir, { recursive: true });
   if (process.env.TMUX) {
     try {
       execSync(`tmux setenv TRESH_ID ${esc(name)}`, { stdio: "pipe" });
+      const tty = execSync("tmux display-message -p '#{pane_tty}'", {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      }).trim();
+      if (tty) writeFileSync(join(dir, "tty"), tty + "\n");
     } catch {
       // Not in tmux or tmux unavailable
     }
+  }
+}
+
+export function paneTty(name: string): string | undefined {
+  try {
+    return readFileSync(join(resolveDir(), name, "tty"), "utf8").trim() || undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -97,7 +113,7 @@ export function send(target: string, body: string): Signal {
   const filename = `${ts}-${randomSuffix()}.json`;
   writeFileSync(join(inboxDir, filename), JSON.stringify(signal) + "\n");
 
-  // Wake push-mode watchers
+  // Wake push-mode watchers (for structured consumption via watch)
   try {
     execSync(`tmux wait-for -S tresh-inbox-${esc(target)}`, {
       stdio: "pipe",
@@ -105,6 +121,18 @@ export function send(target: string, body: string): Signal {
     });
   } catch {
     // No waiter or no tmux
+  }
+
+  // True push: write directly to target's pane TTY (no watcher needed)
+  try {
+    const tty = paneTty(target);
+    if (tty) {
+      const time = new Date(ts).toISOString().slice(11, 19);
+      const notification = `\r\n\x1b[33m[${time}] ${from}: ${body}\x1b[0m\r\n`;
+      writeFileSync(tty, notification);
+    }
+  } catch {
+    // TTY not available or not writable
   }
 
   return signal;

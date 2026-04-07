@@ -66,16 +66,13 @@ exec bun run $REPO/src/cli.ts "\$@"
 BINEOF
   chmod +x "$TRESH_BIN/tresh"
 
-  # Per-pane rcfiles with AUTO push watcher in background
+  # Per-pane rcfiles: identify registers the pane TTY for true push
   for name in bob alice; do
     cat > "/tmp/tresh-pane-${name}.rc" << RCEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
-export TRESH_ID=$name
 export PATH="$TRESH_BIN:$PATH"
-# True push: background watcher, messages appear automatically
-tresh watch --push &
-disown
+tresh identify $name
 RCEOF
   done
 
@@ -97,52 +94,36 @@ RCEOF
 # ---------------------------------------------------------------------------
 
 demo() {
-  # ===== PHASE 1: True push -- no watch command, messages just appear =====
+  # ===== PHASE 1: True push -- no watcher, messages appear on the pane =====
+  # send() writes directly to the target's pane TTY. No process needed.
 
-  # Alice sends -- bob's pane shows it INSTANTLY (background watcher)
   alice "tresh send bob 'hey, you around?'" Enter
   pause 2.5
 
-  # Bob responds -- alice's pane shows it INSTANTLY
   bob "tresh send alice 'yeah, on the auth bug'" Enter
   pause 2.5
 
-  alice "tresh send bob 'push is instant -- no polling needed'" Enter
+  alice "tresh send bob 'push delivers to your terminal directly'" Enter
   pause 2.5
 
-  bob "tresh send alice 'zero CPU while waiting too'" Enter
+  bob "tresh send alice 'no watcher, no polling, no background process'" Enter
   pause 2.5
 
   # ===== PHASE 2: Poll comparison -- visible delay =====
-
-  # Kill alice's push watcher, switch to poll to show the difference
-  alice "kill %1 2>/dev/null" Enter
-  pause 0.5
 
   alice "tresh watch --poll 2000" Enter
   pause 2
 
   bob "tresh send alice 'this one takes up to 2 seconds'" Enter
-  pause 4  # visible delay before alice sees it
+  pause 4
 
   alice C-c
-  pause 0.5
-
-  # Restart alice's push watcher
-  alice "tresh watch --push &" Enter
-  alice "disown" Enter
   pause 1
 
   bob "tresh send alice 'spinning up claude now'" Enter
   pause 2.5
 
   # ===== PHASE 3: Real Claude Code =====
-
-  # Kill background watchers before launching Claude (TUI conflict)
-  bob "kill %1 2>/dev/null" Enter
-  pause 0.3
-  alice "kill %1 2>/dev/null" Enter
-  pause 0.5
 
   bob "claude --dangerously-skip-permissions" Enter
   wait_for "$SESSION:0.0" "bypass" 15
@@ -152,22 +133,18 @@ demo() {
   wait_for "$SESSION:0.1" "bypass" 15
   pause 2
 
-  # Bob sends, alice polls to read
+  # True push works inside Claude Code too -- send writes to pane TTY
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
-  pause 6
-
-  alice "! tresh inbox" Enter
   pause 6
 
   alice "! tresh send bob 'nice catch, writing the test now'" Enter
   pause 6
 
-  # Push inside Claude: bob watches, alice sends, bob gets it instantly
-  bob "! timeout 10 tresh watch --push" Enter
-  pause 3
+  bob "! tresh send alice 'fix pushed, your turn'" Enter
+  pause 6
 
   alice "! tresh send bob 'test written, all green, ship it'" Enter
-  pause 10
+  pause 6
 
   # ===== PHASE 4: Exit Claude Code -- wait for actual exit =====
 
@@ -179,15 +156,7 @@ demo() {
   wait_for "$SESSION:0.1" '^\$' 15
   pause 1
 
-  # Restart push watchers
-  bob "tresh watch --push &" Enter
-  bob "disown" Enter
-  pause 0.5
-  alice "tresh watch --push &" Enter
-  alice "disown" Enter
-  pause 1
-
-  # ===== PHASE 5: Terminal goodbye -- push delivers automatically =====
+  # ===== PHASE 5: Terminal goodbye =====
 
   bob "tresh send alice 'good sesh, later'" Enter
   pause 2.5
