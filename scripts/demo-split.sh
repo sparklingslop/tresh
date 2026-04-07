@@ -73,6 +73,7 @@ export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
 export PATH="$TRESH_BIN:$PATH"
+export CONTEXT_ROTATE_DISABLE=1
 tresh identify $name >/dev/null
 RCEOF
   done
