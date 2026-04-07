@@ -2,10 +2,10 @@
 # tresh full demo -- real Claude Code, push + poll modes
 #
 # Two tmux panes. Bob (left) and Alice (right).
-# Phase 1: Push mode -- bob watches, alice sends, instant delivery
-# Phase 2: Poll mode -- alice watches, bob sends, delayed delivery
+# Phase 1: True push -- background watcher, messages appear automatically
+# Phase 2: Poll comparison -- alice watches with --poll, visible delay
 # Phase 3: Real Claude Code -- both launch, chat via ! tresh, /exit
-# Phase 4: Terminal goodbye
+# Phase 4: Terminal goodbye -- push watchers auto-restart
 #
 # Usage:
 #   ./scripts/demo-split.sh              # run demo, attach to watch
@@ -37,7 +37,6 @@ cleanup() {
   rm -rf "$TRESH_DIR" "$TRESH_BIN" /tmp/tresh-pane-*.rc
 }
 
-# Wait for text in a pane. Non-fatal, silent on timeout.
 wait_for() {
   local pane=$1 pattern=$2 timeout=${3:-15} i=0
   while ! tmux capture-pane -p -t "$pane" 2>/dev/null | grep -qE "$pattern"; do
@@ -53,13 +52,13 @@ alice() { tmux send-keys -t "$SESSION:0.1" "$@"; }
 pause() { sleep "${1:-1.5}"; }
 
 # ---------------------------------------------------------------------------
-# Setup -- completely invisible to the viewer
+# Setup
 # ---------------------------------------------------------------------------
 
 setup() {
   cleanup
 
-  # Create a real tresh binary (functions don't survive into Claude's ! shell)
+  # Create real tresh binary on PATH
   mkdir -p "$TRESH_BIN"
   cat > "$TRESH_BIN/tresh" << BINEOF
 #!/bin/bash
@@ -67,29 +66,30 @@ exec bun run $REPO/src/cli.ts "\$@"
 BINEOF
   chmod +x "$TRESH_BIN/tresh"
 
-  # Write per-pane rc files
+  # Per-pane rcfiles with AUTO push watcher in background
   for name in bob alice; do
     cat > "/tmp/tresh-pane-${name}.rc" << RCEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
 export PATH="$TRESH_BIN:$PATH"
+# True push: background watcher, messages appear automatically
+tresh watch --push &
+disown
 RCEOF
   done
 
   TMUX= tmux new-session -d -s "$SESSION"
   TMUX= tmux split-window -h -t "$SESSION"
 
-  # Cosmetics
   tmux set -t "$SESSION" status off
   tmux setw -t "$SESSION" pane-border-style "fg=colour240"
   tmux setw -t "$SESSION" pane-active-border-style "fg=colour75"
 
-  # Start clean bash with env pre-loaded (nothing visible)
   tmux respawn-pane -k -t "$SESSION:0.0" "bash --rcfile /tmp/tresh-pane-bob.rc --noprofile"
   tmux respawn-pane -k -t "$SESSION:0.1" "bash --rcfile /tmp/tresh-pane-alice.rc --noprofile"
 
-  sleep 1
+  sleep 2  # let watchers start
 }
 
 # ---------------------------------------------------------------------------
@@ -97,51 +97,62 @@ RCEOF
 # ---------------------------------------------------------------------------
 
 demo() {
-  # ===== PHASE 1: Push mode (bob watches, alice sends -- instant) =====
+  # ===== PHASE 1: True push -- no watch command, messages just appear =====
 
-  bob "tresh watch --push" Enter
-  pause 2
-
+  # Alice sends -- bob's pane shows it INSTANTLY (background watcher)
   alice "tresh send bob 'hey, you around?'" Enter
   pause 2.5
 
-  alice "tresh send bob 'ready to pair on the auth bug?'" Enter
+  # Bob responds -- alice's pane shows it INSTANTLY
+  bob "tresh send alice 'yeah, on the auth bug'" Enter
   pause 2.5
 
-  alice "tresh send bob 'push is instant btw'" Enter
+  alice "tresh send bob 'push is instant -- no polling needed'" Enter
   pause 2.5
 
-  bob C-c
-  pause 1
+  bob "tresh send alice 'zero CPU while waiting too'" Enter
+  pause 2.5
 
-  # ===== PHASE 2: Poll mode (alice watches, bob sends -- 2s interval) =====
+  # ===== PHASE 2: Poll comparison -- visible delay =====
+
+  # Kill alice's push watcher, switch to poll to show the difference
+  alice "kill %1 2>/dev/null" Enter
+  pause 0.5
 
   alice "tresh watch --poll 2000" Enter
   pause 2
 
-  bob "tresh send alice 'yeah, give me a sec'" Enter
-  pause 4
-
-  bob "tresh send alice 'spinning up claude now'" Enter
-  pause 4
+  bob "tresh send alice 'this one takes up to 2 seconds'" Enter
+  pause 4  # visible delay before alice sees it
 
   alice C-c
+  pause 0.5
+
+  # Restart alice's push watcher
+  alice "tresh watch --push &" Enter
+  alice "disown" Enter
   pause 1
+
+  bob "tresh send alice 'spinning up claude now'" Enter
+  pause 2.5
 
   # ===== PHASE 3: Real Claude Code =====
 
-  # Bob launches -- wait for "bypass permissions" in status bar
+  # Kill background watchers before launching Claude (TUI conflict)
+  bob "kill %1 2>/dev/null" Enter
+  pause 0.3
+  alice "kill %1 2>/dev/null" Enter
+  pause 0.5
+
   bob "claude --dangerously-skip-permissions" Enter
   wait_for "$SESSION:0.0" "bypass" 15
   pause 2
 
-  # Alice launches
   alice "claude --dangerously-skip-permissions" Enter
   wait_for "$SESSION:0.1" "bypass" 15
   pause 2
 
-  # -- Poll demo inside Claude Code --
-  # Bob sends, alice reads via inbox (one-shot poll)
+  # Bob sends, alice polls to read
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
   pause 6
 
@@ -151,28 +162,35 @@ demo() {
   alice "! tresh send bob 'nice catch, writing the test now'" Enter
   pause 6
 
-  # -- Push demo inside Claude Code (the differentiator!) --
-  # Bob starts watching with push (timeout so it auto-exits)
+  # Push inside Claude: bob watches, alice sends, bob gets it instantly
   bob "! timeout 10 tresh watch --push" Enter
-  pause 3  # let watch start and show "watching..."
+  pause 3
 
-  # Alice sends -- bob receives INSTANTLY via push, no polling needed
   alice "! tresh send bob 'test written, all green, ship it'" Enter
-  pause 10  # wait for bob's timeout to expire
+  pause 10
 
-  # ===== PHASE 4: Exit & goodbye =====
+  # ===== PHASE 4: Exit Claude Code -- wait for actual exit =====
 
   bob "/exit" Enter
-  pause 3
+  wait_for "$SESSION:0.0" '^\$' 15
+  pause 1
 
   alice "/exit" Enter
-  pause 3
+  wait_for "$SESSION:0.1" '^\$' 15
+  pause 1
+
+  # Restart push watchers
+  bob "tresh watch --push &" Enter
+  bob "disown" Enter
+  pause 0.5
+  alice "tresh watch --push &" Enter
+  alice "disown" Enter
+  pause 1
+
+  # ===== PHASE 5: Terminal goodbye -- push delivers automatically =====
 
   bob "tresh send alice 'good sesh, later'" Enter
   pause 2.5
-
-  alice "tresh inbox" Enter
-  pause 2
 
   alice "tresh send bob 'o/'" Enter
   pause 3
