@@ -358,3 +358,63 @@ describe("send + inbox round-trip", () => {
     expect(bodies).toEqual(["from-alice", "from-bob"]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Broadcast
+// ---------------------------------------------------------------------------
+
+describe("broadcast", () => {
+  test("sends to all nodes with TRESH_IDENTITY set", async () => {
+    const { broadcast, inbox, identify } = await import("../tresh");
+
+    // Set up inboxes for two targets by sending them a signal first
+    // (this creates their inbox dirs)
+    identify("sender");
+
+    // Manually create identity dirs to simulate discovered nodes
+    const dir1 = join(TEST_DIR, "node-a", "inbox");
+    const dir2 = join(TEST_DIR, "node-b", "inbox");
+    mkdirSync(dir1, { recursive: true });
+    mkdirSync(dir2, { recursive: true });
+
+    const signals = broadcast("hello everyone", ["node-a", "node-b"]);
+    expect(signals.length).toBe(2);
+    expect(signals[0]!.to).toBe("node-a");
+    expect(signals[1]!.to).toBe("node-b");
+
+    // Verify both received
+    identify("node-a");
+    const a = inbox();
+    expect(a.length).toBe(1);
+    expect(a[0]!.body).toBe("hello everyone");
+
+    identify("node-b");
+    const b = inbox();
+    expect(b.length).toBe(1);
+    expect(b[0]!.body).toBe("hello everyone");
+  });
+
+  test("returns empty array when no targets", async () => {
+    const { broadcast, identify } = await import("../tresh");
+    identify("sender");
+    const signals = broadcast("hello", []);
+    expect(signals.length).toBe(0);
+  });
+
+  test("skips self when broadcasting", async () => {
+    const { broadcast, inbox, identify } = await import("../tresh");
+    identify("self-node");
+
+    const dir = join(TEST_DIR, "other", "inbox");
+    mkdirSync(dir, { recursive: true });
+
+    // Include self in targets — should be skipped
+    const signals = broadcast("hello", ["self-node", "other"]);
+    expect(signals.length).toBe(1);
+    expect(signals[0]!.to).toBe("other");
+
+    // Self inbox should be empty
+    const self = inbox();
+    expect(self.length).toBe(0);
+  });
+});

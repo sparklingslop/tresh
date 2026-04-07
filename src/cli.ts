@@ -3,7 +3,7 @@
 // Thin wrapper around the core library.
 // Uses process.stdout/stderr directly (this is a CLI tool, not a service).
 
-import { discover, send, inject, watch, inbox, identify, identity } from "./tresh";
+import { discover, send, broadcast, inject, watch, inbox, identify, identity } from "./tresh";
 import pkg from "../package.json";
 
 const VERSION: string = pkg.version;
@@ -15,6 +15,7 @@ Usage: tresh <command> [args]
 Commands:
   ls                      List mesh nodes (tmux sessions)
   send <target> <body>    Send a signal to target's inbox
+  broadcast <body>        Send to all identified nodes
   inject <target> <text>  Push text into target's tmux pane
   watch [--poll <ms>]     Watch inbox for incoming signals
   inbox                   Read and print pending signals (one-shot)
@@ -51,6 +52,8 @@ async function main(): Promise<number> {
       return cmdLs();
     case "send":
       return cmdSend(args.slice(1));
+    case "broadcast":
+      return cmdBroadcast(args.slice(1));
     case "inject":
       return cmdInject(args.slice(1));
     case "watch":
@@ -87,6 +90,27 @@ function cmdSend(args: string[]): number {
   }
   const signal = send(target, body);
   out(`sent to ${signal.to}: ${signal.body}`);
+  return 0;
+}
+
+function cmdBroadcast(args: string[]): number {
+  const body = args.join(" ");
+  if (!body) {
+    err("tresh broadcast: usage: tresh broadcast <body>");
+    return 1;
+  }
+  const nodes = discover();
+  const targets = nodes
+    .filter((n) => n.identity)
+    .map((n) => n.identity!);
+
+  if (targets.length === 0) {
+    out("no identified nodes found.");
+    return 0;
+  }
+
+  const signals = broadcast(body, targets);
+  out(`broadcast to ${signals.length} node(s): ${signals.map((s) => s.to).join(", ")}`);
   return 0;
 }
 

@@ -111,6 +111,17 @@ export function send(target: string, body: string): Signal {
 }
 
 // ---------------------------------------------------------------------------
+// Broadcast
+// ---------------------------------------------------------------------------
+
+export function broadcast(body: string, targets: string[]): Signal[] {
+  const self = identity();
+  return targets
+    .filter((t) => t !== self)
+    .map((target) => send(target, body));
+}
+
+// ---------------------------------------------------------------------------
 // Inject (direct push via tmux send-keys)
 // ---------------------------------------------------------------------------
 
