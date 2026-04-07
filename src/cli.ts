@@ -1,16 +1,16 @@
 #!/usr/bin/env bun
-// tmesh -- CLI
+// tresh -- CLI
 // Thin wrapper around the core library.
 // Uses process.stdout/stderr directly (this is a CLI tool, not a service).
 
-import { discover, send, inject, watch, inbox, identify, identity } from "./tmesh";
+import { discover, send, inject, watch, inbox, identify, identity } from "./tresh";
 import pkg from "../package.json";
 
 const VERSION: string = pkg.version;
 
-const HELP = `tmesh -- tmux-native agent mesh
+const HELP = `tresh -- tmux-native agent mesh
 
-Usage: tmesh <command> [args]
+Usage: tresh <command> [args]
 
 Commands:
   ls                      List mesh nodes (tmux sessions)
@@ -60,7 +60,7 @@ async function main(): Promise<number> {
     case "identify":
       return cmdIdentify(args.slice(1));
     default:
-      err(`tmesh: unknown command '${cmd}'. Run tmesh --help`);
+      err(`tresh: unknown command '${cmd}'. Run tresh --help`);
       return 1;
   }
 }
@@ -82,7 +82,7 @@ function cmdSend(args: string[]): number {
   const target = args[0];
   const body = args.slice(1).join(" ");
   if (!target || !body) {
-    err("tmesh send: usage: tmesh send <target> <body>");
+    err("tresh send: usage: tresh send <target> <body>");
     return 1;
   }
   const signal = send(target, body);
@@ -94,7 +94,7 @@ function cmdInject(args: string[]): number {
   const target = args[0];
   const text = args.slice(1).join(" ");
   if (!target || !text) {
-    err("tmesh inject: usage: tmesh inject <target> <text>");
+    err("tresh inject: usage: tresh inject <target> <text>");
     return 1;
   }
   try {
@@ -102,7 +102,7 @@ function cmdInject(args: string[]): number {
     out(`injected into ${target}`);
     return 0;
   } catch (e) {
-    err(`tmesh inject: failed -- ${e instanceof Error ? e.message : e}`);
+    err(`tresh inject: failed -- ${e instanceof Error ? e.message : e}`);
     return 1;
   }
 }
@@ -110,7 +110,7 @@ function cmdInject(args: string[]): number {
 async function cmdWatch(args: string[]): Promise<number> {
   const id = identity();
   if (!id) {
-    err("tmesh watch: TMESH_IDENTITY not set. Run: tmesh identify <name>");
+    err("tresh watch: TRESH_IDENTITY not set. Run: tresh identify <name>");
     return 1;
   }
 
@@ -147,7 +147,7 @@ async function cmdWatch(args: string[]): Promise<number> {
 function cmdInbox(): number {
   const id = identity();
   if (!id) {
-    err("tmesh inbox: TMESH_IDENTITY not set. Run: tmesh identify <name>");
+    err("tresh inbox: TRESH_IDENTITY not set. Run: tresh identify <name>");
     return 1;
   }
 
@@ -166,7 +166,7 @@ function cmdInbox(): number {
 function cmdIdentify(args: string[]): number {
   const name = args[0];
   if (!name) {
-    err("tmesh identify: usage: tmesh identify <name>");
+    err("tresh identify: usage: tresh identify <name>");
     return 1;
   }
   identify(name);

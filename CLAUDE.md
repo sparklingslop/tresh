@@ -1,6 +1,6 @@
-# tmesh
+# tresh
 
-**tmux-native agent mesh. Zero infrastructure inter-session communication.**
+**Trivially Reliable Event Shuttle for Harnesses.**
 
 ## Rules
 
@@ -11,12 +11,13 @@
 5. **No emojis** in code or docs
 6. **MIT license**
 7. **Keep it minimal** -- this is a Unix tool, not a framework
+8. **Run `bun run check` before push** -- catches what CI catches
 
 ## Architecture
 
 Three files:
 - `src/types.ts` -- Node, Signal, WatchOptions (~25 lines)
-- `src/tmesh.ts` -- discover, send, recv, inject (~200 lines)
+- `src/tresh.ts` -- discover, send, recv, inject (~200 lines)
 - `src/cli.ts` -- CLI wrapper (~150 lines)
 
 ## Core Primitives
@@ -30,6 +31,13 @@ Three files:
 | `inbox()` | One-shot read | Scan + consume inbox files |
 | `identify(name)` | Set identity | Env var + tmux session env |
 
+## Environment Variables
+
+| Var | Purpose |
+|-----|---------|
+| `TRESH_IDENTITY` | This node's mesh identity |
+| `TRESH_DIR` | Override inbox directory (default: `~/.tresh`) |
+
 ## Signal Format
 
 ```json
@@ -40,5 +48,5 @@ Three files:
 
 - Every function has a test
 - CLI commands work as documented
-- `bun test` passes before every commit
-- Library API matches the exports in `src/tmesh.ts`
+- `bun run check` passes before every push (tsc + test + build + verify)
+- Library API matches the exports in `src/tresh.ts`

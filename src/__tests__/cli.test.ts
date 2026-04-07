@@ -7,7 +7,7 @@ async function run(...args: string[]): Promise<{ code: number; out: string; err:
   const proc = Bun.spawn(["bun", "run", CLI, ...args], {
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, TMESH_SKIP_TMUX_ENV: "1" },
+    env: { ...process.env, TRESH_SKIP_TMUX_ENV: "1" },
   });
   const [out, err] = await Promise.all([
     new Response(proc.stdout).text(),
@@ -25,7 +25,7 @@ describe("cli basics", () => {
   test("--help shows usage", async () => {
     const { code, out } = await run("--help");
     expect(code).toBe(0);
-    expect(out).toContain("tmesh");
+    expect(out).toContain("tresh");
     expect(out).toContain("ls");
     expect(out).toContain("send");
     expect(out).toContain("inject");
@@ -41,7 +41,7 @@ describe("cli basics", () => {
   test("no args shows help", async () => {
     const { code, out } = await run();
     expect(code).toBe(0);
-    expect(out).toContain("tmesh");
+    expect(out).toContain("tresh");
   });
 
   test("unknown command exits 1", async () => {
@@ -113,6 +113,6 @@ describe("cli inbox", () => {
   test("inbox without identity exits 1", async () => {
     const { code, err } = await run("inbox");
     expect(code).toBe(1);
-    expect(err).toContain("TMESH_IDENTITY");
+    expect(err).toContain("TRESH_IDENTITY");
   });
 });

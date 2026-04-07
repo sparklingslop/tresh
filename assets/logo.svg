@@ -1,228 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <defs>
-    <!-- Deep dark background -->
-    <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
-      <stop offset="0%" stop-color="#0C0015"/>
-      <stop offset="100%" stop-color="#06000D"/>
-    </linearGradient>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 460 185" width="460" height="185">
+  <!-- tresh logo: t[r/m]esh + trash can with I/O -->
+  <!-- Composition centered: text block + trash can + subtitles -->
 
-    <!-- Block colors — Sparkling Slop palette -->
-    <linearGradient id="block-t" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22D3EE"/>
-      <stop offset="100%" stop-color="#06B6D4"/>
-    </linearGradient>
-    <linearGradient id="block-m" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#A855F7"/>
-      <stop offset="100%" stop-color="#9333EA"/>
-    </linearGradient>
-    <linearGradient id="block-e" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FF6EC7"/>
-      <stop offset="100%" stop-color="#EC4899"/>
-    </linearGradient>
-    <linearGradient id="block-s" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#84CC16"/>
-      <stop offset="100%" stop-color="#65A30D"/>
-    </linearGradient>
-    <linearGradient id="block-h" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#F59E0B"/>
-      <stop offset="100%" stop-color="#D97706"/>
-    </linearGradient>
+  <g fill="currentColor" font-family="'SF Mono','Fira Code','Cascadia Code','Consolas','Courier New',monospace">
 
-    <!-- Neon glow per color -->
-    <filter id="glow-cyan" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="8" result="b"/>
-      <feFlood flood-color="#22D3EE" flood-opacity="0.4" result="c"/>
-      <feComposite in="c" in2="b" operator="in" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="glow-purple" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="8" result="b"/>
-      <feFlood flood-color="#A855F7" flood-opacity="0.4" result="c"/>
-      <feComposite in="c" in2="b" operator="in" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="glow-pink" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="8" result="b"/>
-      <feFlood flood-color="#FF6EC7" flood-opacity="0.4" result="c"/>
-      <feComposite in="c" in2="b" operator="in" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="glow-lime" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="8" result="b"/>
-      <feFlood flood-color="#84CC16" flood-opacity="0.4" result="c"/>
-      <feComposite in="c" in2="b" operator="in" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="glow-amber" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="8" result="b"/>
-      <feFlood flood-color="#F59E0B" flood-opacity="0.4" result="c"/>
-      <feComposite in="c" in2="b" operator="in" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <!-- t -->
+    <text x="40" y="128" font-size="72" font-weight="700" letter-spacing="4">t</text>
 
-    <!-- Subtle mesh line glow -->
-    <filter id="mesh-glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <!-- m (dimmed, struck through) -->
+    <text x="100" y="128" font-size="72" font-weight="700" letter-spacing="4" opacity="0.2">m</text>
+    <line x1="98" y1="112" x2="154" y2="112" stroke="#ff2d8a" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
 
-    <!-- Text glow -->
-    <filter id="text-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
+    <!-- r (neon pink, above m) -->
+    <text x="102" y="62" font-size="68" font-weight="700" fill="#ff2d8a">r</text>
+    <!-- caret -->
+    <path d="M128 70 L121 83 L114 70" fill="none" stroke="#ff2d8a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
 
-    <!-- macOS squircle clip -->
-    <clipPath id="squircle">
-      <rect x="0" y="0" width="1024" height="1024" rx="228"/>
-    </clipPath>
-  </defs>
+    <!-- esh -->
+    <text x="162" y="128" font-size="72" font-weight="700" letter-spacing="4">esh</text>
 
-  <!-- Background -->
-  <g clip-path="url(#squircle)">
-    <rect width="1024" height="1024" fill="url(#bg)"/>
-
-    <!-- Subtle scanlines -->
-    <g opacity="0.03">
-      <line x1="0" y1="0" x2="1024" y2="0" stroke="#fff" stroke-width="1" />
-      <line x1="0" y1="4" x2="1024" y2="4" stroke="#fff" stroke-width="1" />
-      <line x1="0" y1="8" x2="1024" y2="8" stroke="#fff" stroke-width="1" />
-      <!-- repeat pattern via rect -->
-      <rect width="1024" height="1024" fill="url(#bg)" opacity="0"/>
-    </g>
-
-    <!-- Background mesh grid — subtle dots at intersections -->
-    <g opacity="0.06">
-      <g fill="#A855F7">
-        <!-- 8x8 grid of dots -->
-        <circle cx="128" cy="128" r="2"/><circle cx="256" cy="128" r="2"/><circle cx="384" cy="128" r="2"/><circle cx="512" cy="128" r="2"/><circle cx="640" cy="128" r="2"/><circle cx="768" cy="128" r="2"/><circle cx="896" cy="128" r="2"/>
-        <circle cx="128" cy="256" r="2"/><circle cx="256" cy="256" r="2"/><circle cx="384" cy="256" r="2"/><circle cx="512" cy="256" r="2"/><circle cx="640" cy="256" r="2"/><circle cx="768" cy="256" r="2"/><circle cx="896" cy="256" r="2"/>
-        <circle cx="128" cy="384" r="2"/><circle cx="256" cy="384" r="2"/><circle cx="384" cy="384" r="2"/><circle cx="512" cy="384" r="2"/><circle cx="640" cy="384" r="2"/><circle cx="768" cy="384" r="2"/><circle cx="896" cy="384" r="2"/>
-        <circle cx="128" cy="512" r="2"/><circle cx="256" cy="512" r="2"/><circle cx="384" cy="512" r="2"/><circle cx="512" cy="512" r="2"/><circle cx="640" cy="512" r="2"/><circle cx="768" cy="512" r="2"/><circle cx="896" cy="512" r="2"/>
-        <circle cx="128" cy="640" r="2"/><circle cx="256" cy="640" r="2"/><circle cx="384" cy="640" r="2"/><circle cx="512" cy="640" r="2"/><circle cx="640" cy="640" r="2"/><circle cx="768" cy="640" r="2"/><circle cx="896" cy="640" r="2"/>
-        <circle cx="128" cy="768" r="2"/><circle cx="256" cy="768" r="2"/><circle cx="384" cy="768" r="2"/><circle cx="512" cy="768" r="2"/><circle cx="640" cy="768" r="2"/><circle cx="768" cy="768" r="2"/><circle cx="896" cy="768" r="2"/>
-        <circle cx="128" cy="896" r="2"/><circle cx="256" cy="896" r="2"/><circle cx="384" cy="896" r="2"/><circle cx="512" cy="896" r="2"/><circle cx="640" cy="896" r="2"/><circle cx="768" cy="896" r="2"/><circle cx="896" cy="896" r="2"/>
-      </g>
-    </g>
   </g>
 
-  <!-- ================================================================== -->
-  <!-- JENGA TOWER — five blocks, alternating orientation, stacked        -->
-  <!-- Each block: rounded rect with letter, offset like Jenga pieces     -->
-  <!-- Tower is centered, blocks alternate left-right offset              -->
-  <!-- ================================================================== -->
+  <!-- Mini trash can with I/O signals — more gap from text -->
+  <g transform="translate(345, 82)">
+    <!-- incoming signals (left) — arcs curve away from can, arrow points in -->
+    <path d="M-6 10 Q-10 18 -6 26" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <path d="M-12 6 Q-18 18 -12 30" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+    <path d="M-18 2 Q-26 18 -18 34" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <!-- arrow pointing right (into can) -->
+    <path d="M-2 15 L4 18 L-2 21" fill="none" stroke="#ff2d8a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
 
-  <g clip-path="url(#squircle)">
-
-    <!-- Mesh connection lines between blocks — drawn BEHIND the blocks -->
-    <g filter="url(#mesh-glow)" opacity="0.25">
-      <!-- Vertical spine -->
-      <line x1="512" y1="170" x2="512" y2="730" stroke="#A855F7" stroke-width="1.5" stroke-dasharray="6,6"/>
-      <!-- Cross connections from block centers -->
-      <line x1="380" y1="210" x2="620" y2="330" stroke="#22D3EE" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="620" y1="210" x2="380" y2="330" stroke="#FF6EC7" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="380" y1="330" x2="620" y2="450" stroke="#84CC16" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="620" y1="330" x2="380" y2="450" stroke="#A855F7" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="380" y1="450" x2="620" y2="570" stroke="#22D3EE" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="620" y1="450" x2="380" y2="570" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="380" y1="570" x2="620" y2="690" stroke="#FF6EC7" stroke-width="1" stroke-dasharray="4,4"/>
-      <line x1="620" y1="570" x2="380" y2="690" stroke="#84CC16" stroke-width="1" stroke-dasharray="4,4"/>
+    <!-- trash can -->
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6">
+      <line x1="4" y1="6" x2="36" y2="6"/>
+      <path d="M13 6 L13 2 Q13 -2 17 -2 L23 -2 Q27 -2 27 2 L27 6"/>
+      <line x1="0" y1="10" x2="40" y2="10"/>
+      <path d="M4 10 L6 42 Q6.5 45 10 45 L30 45 Q33.5 45 34 42 L36 10"/>
+      <line x1="15" y1="15" x2="15.5" y2="40" stroke-width="1" opacity="0.25"/>
+      <line x1="20" y1="15" x2="20" y2="40" stroke-width="1" opacity="0.25"/>
+      <line x1="25" y1="15" x2="24.5" y2="40" stroke-width="1" opacity="0.25"/>
     </g>
+    <!-- cursor inside -->
+    <rect x="17" y="20" width="6" height="10" fill="currentColor" opacity="0.4" rx="0.5"/>
 
-    <!-- Block 5 (bottom): h — shifted RIGHT -->
-    <g transform="translate(542, 690)" filter="url(#glow-amber)">
-      <rect x="-150" y="-46" width="300" height="92" rx="12"
-            fill="rgba(245,158,11,0.08)" stroke="url(#block-h)" stroke-width="3"/>
-      <!-- Terminal chrome: three dots -->
-      <circle cx="-128" cy="-28" r="4" fill="#F59E0B" opacity="0.5"/>
-      <circle cx="-114" cy="-28" r="4" fill="#F59E0B" opacity="0.35"/>
-      <circle cx="-100" cy="-28" r="4" fill="#F59E0B" opacity="0.2"/>
-      <text x="0" y="16" text-anchor="middle"
-            font-family="'SF Mono','JetBrains Mono','Fira Code',monospace"
-            font-weight="800" font-size="64" fill="#F59E0B" letter-spacing="4">h</text>
-    </g>
-
-    <!-- Block 4: s — shifted LEFT -->
-    <g transform="translate(472, 570)" filter="url(#glow-lime)">
-      <rect x="-150" y="-46" width="300" height="92" rx="12"
-            fill="rgba(132,204,22,0.08)" stroke="url(#block-s)" stroke-width="3"/>
-      <circle cx="-128" cy="-28" r="4" fill="#84CC16" opacity="0.5"/>
-      <circle cx="-114" cy="-28" r="4" fill="#84CC16" opacity="0.35"/>
-      <circle cx="-100" cy="-28" r="4" fill="#84CC16" opacity="0.2"/>
-      <text x="0" y="16" text-anchor="middle"
-            font-family="'SF Mono','JetBrains Mono','Fira Code',monospace"
-            font-weight="800" font-size="64" fill="#84CC16" letter-spacing="4">s</text>
-    </g>
-
-    <!-- Block 3 (center): e — centered (the hub) -->
-    <g transform="translate(512, 450)" filter="url(#glow-pink)">
-      <rect x="-160" y="-50" width="320" height="100" rx="14"
-            fill="rgba(255,110,199,0.1)" stroke="url(#block-e)" stroke-width="3.5"/>
-      <!-- Slightly larger — this is the "hub" block -->
-      <circle cx="-136" cy="-30" r="5" fill="#FF6EC7" opacity="0.6"/>
-      <circle cx="-120" cy="-30" r="5" fill="#FF6EC7" opacity="0.4"/>
-      <circle cx="-104" cy="-30" r="5" fill="#FF6EC7" opacity="0.25"/>
-      <!-- Cursor blink -->
-      <rect x="100" y="-6" width="28" height="4" rx="1" fill="#FF6EC7" opacity="0.6"/>
-      <text x="0" y="18" text-anchor="middle"
-            font-family="'SF Mono','JetBrains Mono','Fira Code',monospace"
-            font-weight="800" font-size="72" fill="#FF6EC7" letter-spacing="4">e</text>
-    </g>
-
-    <!-- Block 2: m — shifted RIGHT -->
-    <g transform="translate(552, 330)" filter="url(#glow-purple)">
-      <rect x="-150" y="-46" width="300" height="92" rx="12"
-            fill="rgba(168,85,247,0.08)" stroke="url(#block-m)" stroke-width="3"/>
-      <circle cx="-128" cy="-28" r="4" fill="#A855F7" opacity="0.5"/>
-      <circle cx="-114" cy="-28" r="4" fill="#A855F7" opacity="0.35"/>
-      <circle cx="-100" cy="-28" r="4" fill="#A855F7" opacity="0.2"/>
-      <text x="0" y="16" text-anchor="middle"
-            font-family="'SF Mono','JetBrains Mono','Fira Code',monospace"
-            font-weight="800" font-size="64" fill="#A855F7" letter-spacing="4">m</text>
-    </g>
-
-    <!-- Block 1 (top): t — shifted LEFT -->
-    <g transform="translate(462, 210)" filter="url(#glow-cyan)">
-      <rect x="-150" y="-46" width="300" height="92" rx="12"
-            fill="rgba(34,211,238,0.08)" stroke="url(#block-t)" stroke-width="3"/>
-      <circle cx="-128" cy="-28" r="4" fill="#22D3EE" opacity="0.5"/>
-      <circle cx="-114" cy="-28" r="4" fill="#22D3EE" opacity="0.35"/>
-      <circle cx="-100" cy="-28" r="4" fill="#22D3EE" opacity="0.2"/>
-      <text x="0" y="16" text-anchor="middle"
-            font-family="'SF Mono','JetBrains Mono','Fira Code',monospace"
-            font-weight="800" font-size="64" fill="#22D3EE" letter-spacing="4">t</text>
-    </g>
-
-    <!-- Signal pulses traveling between blocks -->
-    <g opacity="0.9">
-      <circle cx="490" cy="265" r="5" fill="#22D3EE">
-        <animate attributeName="cy" values="240;300;240" dur="3s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="540" cy="385" r="4.5" fill="#A855F7">
-        <animate attributeName="cy" values="360;420;360" dur="2.5s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2.5s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="485" cy="505" r="4" fill="#FF6EC7">
-        <animate attributeName="cy" values="480;540;480" dur="2.8s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.85;0.25;0.85" dur="2.8s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="520" cy="625" r="4" fill="#84CC16">
-        <animate attributeName="cy" values="600;660;600" dur="3.2s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="3.2s" repeatCount="indefinite"/>
-      </circle>
-    </g>
+    <!-- outgoing signals (right) — mirror of left -->
+    <path d="M46 10 Q50 18 46 26" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <path d="M52 6 Q58 18 52 30" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+    <path d="M58 2 Q66 18 58 34" fill="none" stroke="#ff2d8a" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <!-- arrow pointing right (out of can) -->
+    <path d="M42 15 L36 18 L42 21" fill="none" stroke="#ff2d8a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
   </g>
 
-  <!-- Wordmark -->
-  <g clip-path="url(#squircle)">
-    <text x="512" y="860" text-anchor="middle"
-          font-family="'SF Mono','JetBrains Mono','Fira Code','Cascadia Code','Consolas',monospace"
-          font-weight="300" font-size="48" letter-spacing="18" fill="#6B7280"
-          filter="url(#text-glow)">tmesh</text>
-    <text x="512" y="905" text-anchor="middle"
-          font-family="'SF Mono','JetBrains Mono','Fira Code',monospace"
-          font-weight="300" font-size="18" letter-spacing="6" fill="#4B5563"
-          opacity="0.6">tmux-native agent mesh</text>
-  </g>
+  <!-- Acronym — centered on composition -->
+  <text x="240" y="162" text-anchor="middle" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="9.5" fill="currentColor" opacity="0.4" letter-spacing="2.5">TRIVIALLY RELIABLE EVENT SHUTTLE FOR HARNESSES</text>
+
+  <!-- Trash pun tagline -->
+  <text x="230" y="180" text-anchor="middle" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="9" fill="#ff2d8a" opacity="0.4" letter-spacing="1.5" font-style="italic">where communication is properly disposed of</text>
+
 </svg>

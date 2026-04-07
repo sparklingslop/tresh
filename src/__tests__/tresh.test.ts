@@ -9,14 +9,14 @@ const TEST_DIR = join(import.meta.dir, ".tmp-test-mesh");
 beforeEach(() => {
   rmSync(TEST_DIR, { recursive: true, force: true });
   mkdirSync(TEST_DIR, { recursive: true });
-  process.env.TMESH_DIR = TEST_DIR;
-  delete process.env.TMESH_IDENTITY;
+  process.env.TRESH_DIR = TEST_DIR;
+  delete process.env.TRESH_IDENTITY;
 });
 
 afterEach(() => {
   rmSync(TEST_DIR, { recursive: true, force: true });
-  delete process.env.TMESH_DIR;
-  delete process.env.TMESH_IDENTITY;
+  delete process.env.TRESH_DIR;
+  delete process.env.TRESH_IDENTITY;
 });
 
 // ---------------------------------------------------------------------------
@@ -55,15 +55,15 @@ describe("types", () => {
 
 describe("identity", () => {
   test("identity() returns undefined when not set", async () => {
-    const { identity } = await import("../tmesh");
+    const { identity } = await import("../tresh");
     expect(identity()).toBeUndefined();
   });
 
-  test("identify() sets TMESH_IDENTITY env var", async () => {
-    const { identify, identity } = await import("../tmesh");
+  test("identify() sets TRESH_IDENTITY env var", async () => {
+    const { identify, identity } = await import("../tresh");
     identify("alice");
     expect(identity()).toBe("alice");
-    expect(process.env.TMESH_IDENTITY).toBe("alice");
+    expect(process.env.TRESH_IDENTITY).toBe("alice");
   });
 });
 
@@ -72,8 +72,8 @@ describe("identity", () => {
 // ---------------------------------------------------------------------------
 
 describe("meshDir", () => {
-  test("returns TMESH_DIR when set", async () => {
-    const { meshDir } = await import("../tmesh");
+  test("returns TRESH_DIR when set", async () => {
+    const { meshDir } = await import("../tresh");
     expect(meshDir()).toBe(TEST_DIR);
   });
 });
@@ -84,7 +84,7 @@ describe("meshDir", () => {
 
 describe("send", () => {
   test("creates signal file in target inbox", async () => {
-    const { send, identify } = await import("../tmesh");
+    const { send, identify } = await import("../tresh");
     identify("alice");
 
     const signal = send("bob", "hello world");
@@ -107,13 +107,13 @@ describe("send", () => {
   });
 
   test("uses 'anonymous' when identity not set", async () => {
-    const { send } = await import("../tmesh");
+    const { send } = await import("../tresh");
     const signal = send("bob", "hi");
     expect(signal.from).toBe("anonymous");
   });
 
   test("creates inbox directory if missing", async () => {
-    const { send, identify } = await import("../tmesh");
+    const { send, identify } = await import("../tresh");
     identify("alice");
     send("newnode", "test");
     const inbox = join(TEST_DIR, "newnode", "inbox");
@@ -121,7 +121,7 @@ describe("send", () => {
   });
 
   test("signal files sort chronologically", async () => {
-    const { send, identify } = await import("../tmesh");
+    const { send, identify } = await import("../tresh");
     identify("alice");
 
     send("bob", "first");
@@ -146,13 +146,13 @@ describe("send", () => {
 
 describe("inbox", () => {
   test("returns empty array when no signals", async () => {
-    const { inbox, identify } = await import("../tmesh");
+    const { inbox, identify } = await import("../tresh");
     identify("alice");
     expect(inbox()).toEqual([]);
   });
 
   test("reads and consumes pending signals", async () => {
-    const { inbox, identify } = await import("../tmesh");
+    const { inbox, identify } = await import("../tresh");
     identify("bob");
 
     // Manually place signals in bob's inbox
@@ -177,12 +177,12 @@ describe("inbox", () => {
   });
 
   test("returns empty array when identity not set", async () => {
-    const { inbox } = await import("../tmesh");
+    const { inbox } = await import("../tresh");
     expect(inbox()).toEqual([]);
   });
 
   test("skips corrupted files", async () => {
-    const { inbox, identify } = await import("../tmesh");
+    const { inbox, identify } = await import("../tresh");
     identify("bob");
 
     const dir = join(TEST_DIR, "bob", "inbox");
@@ -205,12 +205,12 @@ describe("inbox", () => {
 
 describe("watch", () => {
   test("throws when identity not set", async () => {
-    const { watch } = await import("../tmesh");
-    expect(() => watch(() => {})).toThrow("TMESH_IDENTITY not set");
+    const { watch } = await import("../tresh");
+    expect(() => watch(() => {})).toThrow("TRESH_IDENTITY not set");
   });
 
   test("drains existing signals on start", async () => {
-    const { watch, identify } = await import("../tmesh");
+    const { watch, identify } = await import("../tresh");
     identify("watcher");
 
     // Pre-place a signal
@@ -232,7 +232,7 @@ describe("watch", () => {
   });
 
   test("poll mode picks up new signals", async () => {
-    const { watch, identify } = await import("../tmesh");
+    const { watch, identify } = await import("../tresh");
     identify("poller");
 
     const received: string[] = [];
@@ -255,7 +255,7 @@ describe("watch", () => {
   });
 
   test("stop() halts watching", async () => {
-    const { watch, identify } = await import("../tmesh");
+    const { watch, identify } = await import("../tresh");
     identify("stopper");
 
     let count = 0;
@@ -275,7 +275,7 @@ describe("watch", () => {
   });
 
   test("AbortSignal stops watching", async () => {
-    const { watch, identify } = await import("../tmesh");
+    const { watch, identify } = await import("../tresh");
     identify("aborter");
 
     const ac = new AbortController();
@@ -303,7 +303,7 @@ describe("watch", () => {
 
 describe("discover", () => {
   test("returns array (empty if tmux not running)", async () => {
-    const { discover } = await import("../tmesh");
+    const { discover } = await import("../tresh");
     const nodes = discover();
     expect(Array.isArray(nodes)).toBe(true);
   });
@@ -315,7 +315,7 @@ describe("discover", () => {
 
 describe("inject", () => {
   test("throws when target session missing", async () => {
-    const { inject } = await import("../tmesh");
+    const { inject } = await import("../tresh");
     expect(() => inject("nonexistent-session-xyz-999", "hello")).toThrow();
   });
 });
@@ -326,7 +326,7 @@ describe("inject", () => {
 
 describe("send + inbox round-trip", () => {
   test("signal sent by alice is received by bob", async () => {
-    const { send, inbox, identify } = await import("../tmesh");
+    const { send, inbox, identify } = await import("../tresh");
 
     // Alice sends
     identify("alice");
@@ -342,7 +342,7 @@ describe("send + inbox round-trip", () => {
   });
 
   test("multiple senders, single receiver", async () => {
-    const { send, inbox, identify } = await import("../tmesh");
+    const { send, inbox, identify } = await import("../tresh");
 
     identify("alice");
     send("hub", "from-alice");
