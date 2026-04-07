@@ -1,6 +1,6 @@
 {
   "name": "tmesh",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "tmux-native agent mesh. Zero-polling push communication for AI agents.",
   "type": "module",
   "main": "src/tmesh.ts",
