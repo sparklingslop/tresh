@@ -160,6 +160,45 @@ export function installHook(session: string): () => void {
 }
 
 // ---------------------------------------------------------------------------
+// Stream (named pipe output capture via pipe-pane)
+// ---------------------------------------------------------------------------
+
+export function streamPath(paneId: string): string {
+  const dir = join(resolveDir(), "streams");
+  mkdirSync(dir, { recursive: true });
+  return join(dir, `${paneId}.fifo`);
+}
+
+export function startStream(paneId: string): { path: string; stop: () => void } {
+  const fifo = streamPath(paneId);
+  // Create named pipe (FIFO)
+  try {
+    execSync(`mkfifo ${esc(fifo)}`, { stdio: "pipe" });
+  } catch {
+    // FIFO may already exist
+  }
+  // Pipe pane output to the FIFO
+  execSync(`tmux pipe-pane -O -t ${esc(paneId)} "cat > ${esc(fifo)}"`, {
+    stdio: "pipe",
+  });
+  return {
+    path: fifo,
+    stop: () => {
+      try {
+        execSync(`tmux pipe-pane -t ${esc(paneId)}`, { stdio: "pipe" });
+      } catch {
+        // Pane may be gone
+      }
+      try {
+        unlinkSync(fifo);
+      } catch {
+        // FIFO may be gone
+      }
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Watch (receive signals)
 // ---------------------------------------------------------------------------
 
