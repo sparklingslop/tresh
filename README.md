@@ -4,7 +4,9 @@
 
 <h3 align="center">The tmux agent shuttle that mass-produces nothing at scale.</h3>
 
-Zero-polling push between AI agent sessions via `tmux wait-for`. 450 lines. Zero dependencies. It was supposed to be a mesh. It isn't. It works anyway.
+Zero-polling push between AI agent sessions via `tmux wait-for`. 450 lines. Zero dependencies. It was supposed to be a mesh.
+
+It isn't. It works anyway.
 
 ```bash
 tresh send bob "hello"    # alice sends
