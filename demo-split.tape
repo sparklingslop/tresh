@@ -1,66 +1,81 @@
-# tresh demo -- send/receive with push messaging
+# tresh demo -- two-pane push messaging
+# Left: bob watches (push mode). Right: alice sends. Delivery is instant.
 
 Output assets/demo-split-raw.gif
-Set Shell zsh
+Require tmux
+
+Set Shell bash
 Set FontSize 15
-Set Width 900
-Set Height 550
+Set Width 1200
+Set Height 500
 Set Padding 20
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 35ms
+Set TypingSpeed 40ms
 Set CursorBlink false
 
-# Setup
-Type "alias tresh='bun run src/cli.ts'"
-Enter
-Sleep 300ms
-Type "export TRESH_DIR=/tmp/tresh-demo"
-Enter
-Sleep 300ms
-Type "rm -rf /tmp/tresh-demo"
-Enter
-Sleep 300ms
-Type "clear"
-Enter
-Sleep 500ms
+# --- Hidden setup ---
+Hide
+  Type "rm -rf /tmp/tresh-vhs" Enter
+  Sleep 300ms
 
-# Alice sends messages
-Type "export TRESH_ID=alice"
-Enter
+  # Launch tmux (clean config, separate socket to avoid conflicts)
+  Type "tmux -f /dev/null -L vhs new-session -- bash" Enter
+  Sleep 1s
+
+  # Right pane (focus stays left)
+  Type "tmux split-window -d -h -- bash" Enter
+  Sleep 500ms
+
+  # Cosmetics: no status bar, dim pane borders
+  Type "tmux set status off" Enter
+  Sleep 200ms
+  Type 'tmux setw pane-border-style "fg=8"' Enter
+  Sleep 200ms
+  Type 'tmux setw pane-active-border-style "fg=8"' Enter
+  Sleep 200ms
+
+  # Set up alice (right pane)
+  Ctrl+B
+  Type "o"
+  Sleep 300ms
+  Type 'export PS1="$ " TRESH_DIR=/tmp/tresh-vhs TRESH_ID=alice' Enter
+  Sleep 200ms
+  Type 'alias tresh="bun run src/cli.ts"' Enter
+  Sleep 200ms
+  Type "clear" Enter
+  Sleep 300ms
+
+  # Set up bob (left pane)
+  Ctrl+B
+  Type "o"
+  Sleep 300ms
+  Type 'export PS1="$ " TRESH_DIR=/tmp/tresh-vhs TRESH_ID=bob' Enter
+  Sleep 200ms
+  Type 'alias tresh="bun run src/cli.ts"' Enter
+  Sleep 200ms
+  Type "clear && tresh watch --push" Enter
+  Sleep 1.5s
+
+  # Switch to alice for the visible demo
+  Ctrl+B
+  Type "o"
+  Sleep 500ms
+  Ctrl+L
+  Sleep 500ms
+Show
+
+# --- alice sends, bob receives instantly via push ---
+
 Sleep 500ms
 
 Type "tresh send bob 'hello from alice'"
 Enter
-Sleep 1s
+Sleep 2.5s
 
-Type "tresh send bob 'review PR 42?'"
+Type "tresh send bob 'can you review PR 42?'"
 Enter
-Sleep 1s
+Sleep 2.5s
 
 Type "tresh send bob 'tests pass, ship it'"
 Enter
-Sleep 1.5s
-
-# Blank line
-Type ""
-Enter
-Sleep 300ms
-
-# Bob reads inbox
-Type "export TRESH_ID=bob"
-Enter
-Sleep 500ms
-
-Type "tresh inbox"
-Enter
-Sleep 2.5s
-
-# Show consumed
-Type "tresh inbox"
-Enter
-Sleep 1.5s
-
-# Check mesh
-Type "tresh ls"
-Enter
-Sleep 2.5s
+Sleep 3s
