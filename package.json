@@ -1,18 +1,18 @@
 {
-  "name": "tmesh",
-  "version": "0.1.1",
-  "description": "tmux-native agent mesh. Zero-polling push communication for AI agents.",
+  "name": "tresh",
+  "version": "0.1.2",
+  "description": "Trivially Reliable Event Shuttle for Harnesses. Where communication is properly disposed of.",
   "type": "module",
-  "main": "src/tmesh.ts",
+  "main": "src/tresh.ts",
   "bin": {
-    "tmesh": "src/cli.ts"
+    "tresh": "src/cli.ts"
   },
   "scripts": {
     "test": "bun test",
     "check": "bun x tsc --noEmit && bun test && bun build src/cli.ts --compile --outfile /tmp/tmesh-check && /tmp/tmesh-check --help > /dev/null",
     "build": "bun build src/cli.ts --outdir dist --target bun",
     "build:binary": "bun build src/cli.ts --compile --outfile dist/tmesh",
-    "tmesh": "bun run src/cli.ts"
+    "tresh": "bun run src/cli.ts"
   },
   "license": "MIT",
   "keywords": [
@@ -27,7 +27,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sparklingslop/tmesh"
+    "url": "https://github.com/sparklingslop/tresh"
   },
   "engines": {
     "bun": ">=1.0.0"

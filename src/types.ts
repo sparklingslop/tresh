@@ -1,4 +1,4 @@
-// tmesh — types
+// tresh -- types
 
 export interface Node {
   session: string;

@@ -45,7 +45,7 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - run: bun build src/cli.ts --compile --outfile tmesh
+      - run: bun build src/cli.ts --compile --outfile tresh
 
       - name: Verify binary
-        run: ./tmesh --help
+        run: ./tresh --help

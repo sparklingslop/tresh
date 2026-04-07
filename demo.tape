@@ -1,5 +1,5 @@
-# tmesh demo — send/receive round-trip
-# Uses `bun run src/cli.ts` since tmesh isn't globally installed
+# tresh demo — send/receive round-trip
+# Uses `bun run src/cli.ts` since tresh isn't globally installed
 
 Output assets/demo-raw.gif
 Set Shell zsh
@@ -11,8 +11,8 @@ Set Theme "Catppuccin Mocha"
 Set TypingSpeed 40ms
 Set CursorBlink false
 
-# Alias tmesh for the demo
-Type "alias tmesh='bun run src/cli.ts'"
+# Alias tresh for the demo
+Type "alias tresh='bun run src/cli.ts'"
 Enter
 Sleep 300ms
 
@@ -22,15 +22,15 @@ Enter
 Sleep 400ms
 
 # Send messages to bob
-Type "tmesh send bob 'hello from alice'"
+Type "tresh send bob 'hello from alice'"
 Enter
 Sleep 800ms
 
-Type "tmesh send bob 'can you review PR 42?'"
+Type "tresh send bob 'can you review PR 42?'"
 Enter
 Sleep 800ms
 
-Type "tmesh send bob 'tests pass, shipping it'"
+Type "tresh send bob 'tests pass, shipping it'"
 Enter
 Sleep 1s
 
@@ -45,16 +45,16 @@ Enter
 Sleep 400ms
 
 # Read inbox
-Type "tmesh inbox"
+Type "tresh inbox"
 Enter
 Sleep 2s
 
 # Show consumed
-Type "tmesh inbox"
+Type "tresh inbox"
 Enter
 Sleep 1.5s
 
 # Discover peers
-Type "tmesh ls"
+Type "tresh ls"
 Enter
 Sleep 2s

@@ -1,4 +1,4 @@
-// tmesh -- core library
+// tresh -- core library
 // Three primitives: discover, send/recv, inject
 // Two watch modes: push (wait-for) and poll (setInterval)
 
@@ -18,7 +18,7 @@ import type { Node, Signal, SignalHandler, WatchOptions } from "./types";
 // ---------------------------------------------------------------------------
 
 function resolveDir(): string {
-  return process.env.TMESH_DIR ?? join(process.env.HOME ?? "/tmp", ".tmesh");
+  return process.env.TRESH_DIR ?? join(process.env.HOME ?? "/tmp", ".tresh");
 }
 
 export function meshDir(): string {
@@ -30,14 +30,14 @@ export function meshDir(): string {
 // ---------------------------------------------------------------------------
 
 export function identity(): string | undefined {
-  return process.env.TMESH_IDENTITY;
+  return process.env.TRESH_IDENTITY;
 }
 
 export function identify(name: string): void {
-  process.env.TMESH_IDENTITY = name;
+  process.env.TRESH_IDENTITY = name;
   if (process.env.TMUX) {
     try {
-      execSync(`tmux setenv TMESH_IDENTITY ${esc(name)}`, { stdio: "pipe" });
+      execSync(`tmux setenv TRESH_IDENTITY ${esc(name)}`, { stdio: "pipe" });
     } catch {
       // Not in tmux or tmux unavailable
     }
@@ -69,7 +69,7 @@ export function discover(): Node[] {
       const node: Node = { session, created };
       try {
         const env = execSync(
-          `tmux show-environment -t ${esc(session)} TMESH_IDENTITY`,
+          `tmux show-environment -t ${esc(session)} TRESH_IDENTITY`,
           { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
         );
         const val = env.trim().split("=")[1];
@@ -99,7 +99,7 @@ export function send(target: string, body: string): Signal {
 
   // Wake push-mode watchers
   try {
-    execSync(`tmux wait-for -S tmesh-inbox-${esc(target)}`, {
+    execSync(`tmux wait-for -S tresh-inbox-${esc(target)}`, {
       stdio: "pipe",
       timeout: 2000,
     });
@@ -126,7 +126,7 @@ export function inject(target: string, text: string): void {
 
 export function watch(handler: SignalHandler, opts?: WatchOptions): () => void {
   const id = identity();
-  if (!id) throw new Error("TMESH_IDENTITY not set. Call identify() first.");
+  if (!id) throw new Error("TRESH_IDENTITY not set. Call identify() first.");
 
   const mode = opts?.mode ?? "auto";
   const interval = opts?.interval ?? 500;
@@ -215,7 +215,7 @@ function startPushWatch(
   const loop = () => {
     if (isStopped()) return;
 
-    const channel = `tmesh-inbox-${id}`;
+    const channel = `tresh-inbox-${id}`;
     const child = spawn("tmux", ["wait-for", channel], { stdio: "pipe" });
     setChild(child);
 
