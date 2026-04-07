@@ -144,23 +144,32 @@ demo() {
   wait_for "$SESSION:0.1" "bypass" 30
   pause 2
 
-  # ===== PHASE 4: Three CC interaction modes (~32s) =====
+  # ===== PHASE 4: CC communication -- all via push, three modes =====
+  # Every send() writes to the target's pane TTY. No inbox reads.
 
-  # MODE A: Shell escape -- bob sends directly, Claude doesn't see it
+  # MODE A: Shell escape -- bob sends, alice sees yellow push on her pane
   bob "! tresh send alice 'found it -- auth.ts line 42, token not refreshed'" Enter
   pause 6
 
-  # MODE B: Bash tool -- alice asks Claude to read inbox
-  alice "please run: tresh inbox" Enter
+  # MODE B: Bash tool -- alice asks Claude to send (not read!)
+  alice "please run: tresh send bob 'nice catch, writing the test now'" Enter
   pause 8
 
-  # MODE C: Natural language -- alice tells Claude to message bob
-  alice "tell bob via tresh that you are writing the test now" Enter
+  # MODE C: Natural language -- bob tells Claude to message alice
+  bob "tell alice via tresh that you pushed the fix" Enter
   pause 12
 
-  # MODE A again: Shell escape -- bob confirms
-  bob "! tresh send alice 'test written, all green, ship it'" Enter
-  pause 6
+  # MODE B again: alice confirms via Bash tool
+  alice "please run: tresh send bob 'test written, all green, ship it'" Enter
+  pause 8
+
+  # Bob wraps up one more task, then announces he's done
+  bob "tell alice via tresh that you also updated the docs, done for today" Enter
+  pause 12
+
+  # Alice finishes and signs off too
+  alice "tell bob via tresh that you merged the PR, calling it a day" Enter
+  pause 12
 
   # ===== PHASE 5: Exit and goodbye (~10s) =====
 
