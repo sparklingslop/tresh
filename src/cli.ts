@@ -22,6 +22,7 @@ Commands:
   identify <name>         Set this session's mesh identity
 
 Options:
+  --ack                   Auto-acknowledge incoming messages (or TRESH_ACK=1)
   --help, -h              Show this help
   --version, -v           Show version`;
 
@@ -59,7 +60,7 @@ async function main(): Promise<number> {
     case "watch":
       return cmdWatch(args.slice(1));
     case "inbox":
-      return cmdInbox();
+      return cmdInbox(args.slice(1));
     case "identify":
       return cmdIdentify(args.slice(1));
     default:
@@ -140,6 +141,7 @@ async function cmdWatch(args: string[]): Promise<number> {
 
   let mode: "push" | "poll" | "auto" = "auto";
   let interval = 500;
+  let ack = process.env.TRESH_ACK === "1";
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--poll") {
@@ -153,36 +155,49 @@ async function cmdWatch(args: string[]): Promise<number> {
     if (args[i] === "--push") {
       mode = "push";
     }
+    if (args[i] === "--ack") {
+      ack = true;
+    }
   }
 
-  out(`watching inbox as ${id} (${mode} mode)...`);
+  const modeLabel = ack ? `${mode} mode, ack on` : `${mode} mode`;
+  out(`watching inbox as ${id} (${modeLabel})...`);
   watch(
     (signal) => {
       const ts = formatTime(signal.ts);
-      out(`[${ts}] ${signal.from}: ${signal.body}`);
+      if (signal.type === "ack") {
+        out(`\x1b[2m[${ts}] ${signal.from}: ${signal.body}\x1b[0m`);
+      } else {
+        out(`[${ts}] ${signal.from}: ${signal.body}`);
+      }
     },
-    { mode, interval },
+    { mode, interval, ack },
   );
 
   // Block forever — watch runs until killed
   return new Promise<number>(() => {});
 }
 
-function cmdInbox(): number {
+function cmdInbox(args: string[]): number {
   const id = identity();
   if (!id) {
     err("tresh inbox: TRESH_ID not set. Run: tresh identify <name>");
     return 1;
   }
 
-  const signals = inbox();
+  const ack = args.includes("--ack") || process.env.TRESH_ACK === "1";
+  const signals = inbox({ ack });
   if (signals.length === 0) {
     out("inbox empty.");
     return 0;
   }
   for (const signal of signals) {
     const ts = formatTime(signal.ts);
-    out(`[${ts}] ${signal.from}: ${signal.body}`);
+    if (signal.type === "ack") {
+      out(`\x1b[2m[${ts}] ${signal.from}: ${signal.body}\x1b[0m`);
+    } else {
+      out(`[${ts}] ${signal.from}: ${signal.body}`);
+    }
   }
   return 0;
 }

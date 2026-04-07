@@ -116,6 +116,19 @@ tresh broadcast <body>        Send to all identified nodes
 tresh inject <target> <text>  Push text into target's pane input
 tresh watch [--poll <ms>]     Watch inbox for incoming signals
 tresh inbox                   Read pending signals (one-shot)
+
+Options (watch/inbox):
+  --ack                       Auto-acknowledge incoming messages
+```
+
+## Ack mode
+
+When enabled, incoming messages are automatically acknowledged back to the sender. Acks are never acked (no infinite loops). Ack signals display dimmed in the terminal.
+
+```bash
+tresh watch --ack              # auto-ack in watch mode
+tresh inbox --ack              # auto-ack in one-shot mode
+TRESH_ACK=1 tresh watch        # or via env var
 ```
 
 ## Library API
@@ -137,11 +150,11 @@ const nodes = discover();
 
 // Watch for signals (optional -- true push works without this)
 const stop = watch((signal) => {
-  // signal: { from, to, body, ts }
-}, { mode: "push" });
+  // signal: { from, to, body, ts, type? }
+}, { mode: "push", ack: true });
 
-// One-shot inbox read
-const signals = inbox();
+// One-shot inbox read (with auto-ack)
+const signals = inbox({ ack: true });
 
 // Direct injection into pane input
 inject("session-name", "some text");
@@ -150,10 +163,10 @@ inject("session-name", "some text");
 ## Signal format
 
 ```json
-{ "from": "alice", "to": "bob", "body": "hello", "ts": 1712451200000 }
+{ "from": "alice", "to": "bob", "body": "hello", "ts": 1712451200000, "type": "message" }
 ```
 
-One struct. Four fields. That is the entire protocol.
+One struct. Five fields. That is the entire protocol. `type` is optional: `"message"` (default) or `"ack"`.
 
 ## Design decisions
 

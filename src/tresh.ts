@@ -107,10 +107,11 @@ export function discover(): Node[] {
 // Send
 // ---------------------------------------------------------------------------
 
-export function send(target: string, body: string): Signal {
+export function send(target: string, body: string, type?: "message" | "ack"): Signal {
   const from = identity() ?? "anonymous";
   const ts = Date.now();
   const signal: Signal = { from, to: target, body, ts };
+  if (type) signal.type = type;
 
   const inboxDir = join(resolveDir(), target, "inbox");
   mkdirSync(inboxDir, { recursive: true });
@@ -256,17 +257,25 @@ export function watch(handler: SignalHandler, opts?: WatchOptions): () => void {
     }
   };
 
+  const ack = opts?.ack ?? false;
+  const wrappedHandler: SignalHandler = (signal) => {
+    if (ack && signal.type !== "ack") {
+      send(signal.from, `ack: ${signal.body}`, "ack");
+    }
+    return handler(signal);
+  };
+
   // Drain existing signals first
-  drainInbox(inboxDir, handler);
+  drainInbox(inboxDir, wrappedHandler);
 
   const setChild = (child: ReturnType<typeof spawn> | null) => {
     activeChild = child;
   };
 
   if (mode === "push" || mode === "auto") {
-    startPushWatch(inboxDir, id, handler, () => stopped, interval, mode, setChild);
+    startPushWatch(inboxDir, id, wrappedHandler, () => stopped, interval, mode, setChild);
   } else {
-    startPollWatch(inboxDir, handler, () => stopped, interval);
+    startPollWatch(inboxDir, wrappedHandler, () => stopped, interval);
   }
 
   if (opts?.signal) {
@@ -277,14 +286,22 @@ export function watch(handler: SignalHandler, opts?: WatchOptions): () => void {
 }
 
 // One-shot: read all pending signals and return them
-export function inbox(): Signal[] {
+export function inbox(opts?: { ack?: boolean }): Signal[] {
   const id = identity();
   if (!id) return [];
 
   const dir = join(resolveDir(), id, "inbox");
   mkdirSync(dir, { recursive: true });
 
-  return readSignals(dir);
+  const signals = readSignals(dir);
+  if (opts?.ack) {
+    for (const signal of signals) {
+      if (signal.type !== "ack") {
+        send(signal.from, `ack: ${signal.body}`, "ack");
+      }
+    }
+  }
+  return signals;
 }
 
 // ---------------------------------------------------------------------------

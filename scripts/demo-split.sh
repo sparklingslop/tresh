@@ -47,9 +47,33 @@ wait_for() {
   while ! tmux capture-pane -p -t "$pane" 2>/dev/null | grep -qE "$pattern"; do
     sleep 0.5
     i=$((i + 1))
-    [ $i -ge $((timeout * 2)) ] && return 0
+    [ $i -ge $((timeout * 2)) ] && return 1
   done
   sleep 0.5
+  return 0
+}
+
+# Wait for CC to be ready, handling optional trust prompt
+wait_cc_ready() {
+  local pane=$1 timeout=${2:-30} i=0
+  while true; do
+    local screen
+    screen=$(tmux capture-pane -p -t "$pane" 2>/dev/null || echo "")
+    # Already past trust prompt -- CC is ready
+    if echo "$screen" | grep -qE "bypass"; then
+      sleep 0.5
+      return 0
+    fi
+    # Trust prompt showing -- confirm it
+    if echo "$screen" | grep -q "Yes, I trust this folder"; then
+      tmux send-keys -t "$pane" Enter
+      wait_for "$pane" "bypass" 30
+      return 0
+    fi
+    sleep 0.5
+    i=$((i + 1))
+    [ $i -ge $((timeout * 2)) ] && return 1
+  done
 }
 
 bob()   { tmux send-keys -t "$SESSION:0.0" "$@"; }
@@ -122,6 +146,7 @@ BINEOF
 export PS1='\$ '
 export TRESH_DIR=$TRESH_DIR
 export TRESH_ID=$name
+export TRESH_ACK=1
 export PATH="$TRESH_BIN:$PATH"
 export CONTEXT_ROTATE_DISABLE=1
 cd $DEMO_DIR
@@ -188,12 +213,20 @@ demo() {
   pause 0.5
 
   # Simultaneous launch -- both panes at once
-  bob   "claude --dangerously-skip-permissions --effort high" Enter
-  alice "claude --dangerously-skip-permissions --effort high" Enter
+  bob   "claude --dangerously-skip-permissions" Enter
+  alice "claude --dangerously-skip-permissions" Enter
 
-  # Wait for both to be ready
-  wait_for "$SESSION:0.0" "bypass" 30
-  wait_for "$SESSION:0.1" "bypass" 30
+  # Wait for both to be ready (handles trust prompt if it appears)
+  wait_cc_ready "$SESSION:0.0" 30
+  wait_cc_ready "$SESSION:0.1" 30
+  pause 2
+
+  # Prime both agents: use tresh CLI, NOT nano-mesh MCP
+  PRIME="You are in a tresh demo. To communicate with other agents, ONLY use the tresh CLI via Bash: tresh send <target> <body>. Do NOT use nano-mesh MCP tools. Your identity is already set via TRESH_ID. Acknowledge with ok."
+  bob "$PRIME" Enter
+  wait_for "$SESSION:0.0" "ok" 30
+  alice "$PRIME" Enter
+  wait_for "$SESSION:0.1" "ok" 30
   pause 2
 
   # ===== PHASE 4: CC communication -- all via push, three modes =====
