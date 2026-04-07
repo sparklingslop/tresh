@@ -222,7 +222,7 @@ describe("watch", () => {
     );
 
     const received: string[] = [];
-    const stop = watch((s) => received.push(s.body), { mode: "poll", interval: 50 });
+    const stop = watch((s) => { received.push(s.body); }, { mode: "poll", interval: 50 });
 
     // Wait for drain
     await new Promise((r) => setTimeout(r, 100));
@@ -236,7 +236,7 @@ describe("watch", () => {
     identify("poller");
 
     const received: string[] = [];
-    const stop = watch((s) => received.push(s.body), { mode: "poll", interval: 50 });
+    const stop = watch((s) => { received.push(s.body); }, { mode: "poll", interval: 50 });
 
     // Send after watch starts
     await new Promise((r) => setTimeout(r, 30));
